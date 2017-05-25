@@ -1,0 +1,53 @@
+version: "2"
+
+services:
+
+  hoover-snoop-pg:
+    image: postgres:9.6
+    #volumes:
+    #  - "./docker-data/hoover-snoop-pg/data:/var/lib/postgresql/data"
+    #  - "./docker-data/hoover-snoop-pg/logs:/var/log"
+    environment:
+      POSTGRES_USER: hoover-snoop
+      POSTGRES_DATABASE: hoover-snoop
+
+  hoover-snoop-tika:
+    image: logicalspark/docker-tikaserver
+
+  hoover-snoop:
+    build: ./snoop
+    command: python3 manage.py runserver 0.0.0.0:8001
+    volumes:
+      - /mnt/hgfs/hoover/snoop:/opt/hoover/snoop
+      - /opt/hoover/cache:/opt/hoover/cache
+      - /mnt/hgfs/hoover/datasets:/opt/hoover/datasets
+      - /opt/hoover/testdata:/opt/hoover/testdata
+    ports:
+      - 8001:8001
+    depends_on:
+      - hoover-snoop-pg
+      - hoover-snoop-tika
+      - hoover-search-es
+
+  hoover-search-pg:
+    image: postgres:9.6
+    environment:
+      POSTGRES_USER: hoover-search
+      POSTGRES_DATABASE: hoover-search
+
+  hoover-search-es:
+    image: elasticsearch:2
+
+  hoover-search:
+    build: ./search
+    command: python3 manage.py runserver 0.0.0.0:8000
+    volumes:
+      - /mnt/hgfs/hoover/search:/opt/hoover/search
+      - /mnt/hgfs/hoover/ui/build:/opt/hoover/ui/build
+      - /mnt/hgfs/hoover/metrics:/opt/hoover/metrics
+    ports:
+      - 8000:8000
+    depends_on:
+      - hoover-search-pg
+      - hoover-search-es
+      - hoover-snoop
