@@ -2,52 +2,55 @@ version: "2"
 
 services:
 
-  hoover-snoop-pg:
+  snoop-pg:
     image: postgres:9.6
-    #volumes:
-    #  - "./docker-data/hoover-snoop-pg/data:/var/lib/postgresql/data"
-    #  - "./docker-data/hoover-snoop-pg/logs:/var/log"
+    volumes:
+      - /opt/hoover/docker-volumes/snoop-pg/data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: hoover-snoop
-      POSTGRES_DATABASE: hoover-snoop
+      POSTGRES_USER: snoop
+      POSTGRES_DATABASE: snoop
 
-  hoover-snoop-tika:
+  snoop-tika:
     image: logicalspark/docker-tikaserver
 
-  hoover-snoop:
+  snoop:
     build: ./snoop
     command: python3 manage.py runserver 0.0.0.0:8001
     volumes:
-      - /mnt/hgfs/hoover/snoop:/opt/hoover/snoop
+      - /opt/hoover/snoop:/opt/hoover/snoop
       - /opt/hoover/cache:/opt/hoover/cache
-      - /mnt/hgfs/hoover/datasets:/opt/hoover/datasets
+      - /opt/hoover/datasets:/opt/hoover/datasets
       - /opt/hoover/testdata:/opt/hoover/testdata
     ports:
       - 8001:8001
     depends_on:
-      - hoover-snoop-pg
-      - hoover-snoop-tika
-      - hoover-search-es
+      - snoop-pg
+      - snoop-tika
+      - search-es
 
-  hoover-search-pg:
+  search-pg:
     image: postgres:9.6
+    volumes:
+      - /opt/hoover/docker-volumes/search-pg/data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: hoover-search
-      POSTGRES_DATABASE: hoover-search
+      POSTGRES_USER: search
+      POSTGRES_DATABASE: search
 
-  hoover-search-es:
+  search-es:
     image: elasticsearch:2
+    volumes:
+      - /opt/hoover/docker-volumes/search-es/data:/usr/share/elasticsearch/data
 
-  hoover-search:
+  search:
     build: ./search
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
-      - /mnt/hgfs/hoover/search:/opt/hoover/search
-      - /mnt/hgfs/hoover/ui/build:/opt/hoover/ui/build
-      - /mnt/hgfs/hoover/metrics:/opt/hoover/metrics
+      - /opt/hoover/search:/opt/hoover/search
+      - /opt/hoover/ui/build:/opt/hoover/ui/build
+      - /opt/hoover/metrics:/opt/hoover/metrics
     ports:
       - 8000:8000
     depends_on:
-      - hoover-search-pg
-      - hoover-search-es
-      - hoover-snoop
+      - search-pg
+      - search-es
+      - snoop
