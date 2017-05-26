@@ -5,7 +5,7 @@ services:
   snoop-pg:
     image: postgres:9.6
     volumes:
-      - /opt/hoover/docker-volumes/snoop-pg/data:/var/lib/postgresql/data
+      - ./docker-volumes/snoop-pg/data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: snoop
       POSTGRES_DATABASE: snoop
@@ -17,10 +17,10 @@ services:
     build: ./snoop
     command: python3 manage.py runserver 0.0.0.0:8001
     volumes:
-      - /opt/hoover/snoop:/opt/hoover/snoop
-      - /opt/hoover/cache:/opt/hoover/cache
-      - /opt/hoover/datasets:/opt/hoover/datasets
-      - /opt/hoover/testdata:/opt/hoover/testdata
+      - ./snoop:/opt/hoover/snoop
+      - ./cache:/opt/hoover/cache
+      - ./datasets:/opt/hoover/datasets
+      - ./testdata:/opt/hoover/testdata
     ports:
       - 8001:8001
     depends_on:
@@ -31,7 +31,7 @@ services:
   search-pg:
     image: postgres:9.6
     volumes:
-      - /opt/hoover/docker-volumes/search-pg/data:/var/lib/postgresql/data
+      - ./docker-volumes/search-pg/data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: search
       POSTGRES_DATABASE: search
@@ -39,15 +39,15 @@ services:
   search-es:
     image: elasticsearch:2
     volumes:
-      - /opt/hoover/docker-volumes/search-es/data:/usr/share/elasticsearch/data
+      - ./docker-volumes/search-es/data:/usr/share/elasticsearch/data
 
   search:
     build: ./search
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
-      - /opt/hoover/search:/opt/hoover/search
-      - /opt/hoover/ui/build:/opt/hoover/ui/build
-      - /opt/hoover/metrics:/opt/hoover/metrics
+      - ./search:/opt/hoover/search
+      - ./ui/build:/opt/hoover/ui/build
+      - ./metrics:/opt/hoover/metrics
     ports:
       - 8000:8000
     depends_on:
