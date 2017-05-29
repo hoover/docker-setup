@@ -5,7 +5,7 @@ services:
   snoop-pg:
     image: postgres:9.6
     volumes:
-      - ./docker-volumes/snoop-pg/data:/var/lib/postgresql/data
+      - ./volumes/snoop-pg/data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: snoop
       POSTGRES_DATABASE: snoop
@@ -34,7 +34,7 @@ services:
   search-pg:
     image: postgres:9.6
     volumes:
-      - ./docker-volumes/search-pg/data:/var/lib/postgresql/data
+      - ./volumes/search-pg/data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: search
       POSTGRES_DATABASE: search
@@ -42,7 +42,7 @@ services:
   search-es:
     image: elasticsearch:2
     volumes:
-      - ./docker-volumes/search-es/data:/usr/share/elasticsearch/data
+      - ./volumes/search-es/data:/usr/share/elasticsearch/data
 
   ui:
     build: ./ui
