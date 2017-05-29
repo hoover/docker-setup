@@ -46,7 +46,6 @@ services:
 
   ui:
     build: ./ui
-    command: node build.js
     volumes:
       - ./ui/build:/opt/hoover/ui/build
 
