@@ -21,7 +21,7 @@ services:
       - ./cache:/opt/hoover/cache
       - ./datasets:/opt/hoover/datasets
       - ./testdata:/opt/hoover/testdata
-      - ./docker-snoop-settings.py:/opt/hoover/snoop/snoop/site/settings/local.py
+      - ./snoop-settings.py:/opt/hoover/snoop/snoop/site/settings/local.py
     ports:
       - 8001:8001
     depends_on:
@@ -29,7 +29,7 @@ services:
       - snoop-tika
       - search-es
     env_file:
-      - docker-snoop.env
+      - snoop.env
 
   search-pg:
     image: postgres:9.6
@@ -57,7 +57,7 @@ services:
       - ./search:/opt/hoover/search
       - ./ui/build:/opt/hoover/ui/build
       - ./metrics:/opt/hoover/metrics
-      - ./docker-search-settings.py:/opt/hoover/search/hoover/site/settings/local.py
+      - ./search-settings.py:/opt/hoover/search/hoover/site/settings/local.py
     ports:
       - 8000:8000
     depends_on:
@@ -66,4 +66,4 @@ services:
       - ui
       - snoop
     env_file:
-      - docker-search.env
+      - search.env
