@@ -49,13 +49,12 @@ These instructions have been tested on Debian Jessie.
 4. Spin up the docker containers, run migrations, create amdin user:
 
     ```bash
-    docker-compose build
     docker-compose run --rm snoop ./manage.py migrate
     docker-compose run --rm search ./manage.py migrate
     docker-compose run --rm search ./manage.py createsuperuser
     docker-compose run --rm ui node build.js
     docker-compose run --rm search ./manage.py collectstatic --noinput
-    docker-compose up -d search
+    docker-compose up -d
     ```
 
 5. Set up nginx as reverse proxy:
@@ -68,10 +67,11 @@ These instructions have been tested on Debian Jessie.
       server_name hoover.example.com;
       location / {
         proxy_pass http://localhost:8000;
-        proxy_set_header Host $$host;
+        proxy_set_header Host \$host;
       }
     }
     EOF
+    service nginx reload
     ```
 
 6. Import the test dataset:
