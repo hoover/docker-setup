@@ -19,7 +19,7 @@ services:
     volumes:
       - ./snoop:/opt/hoover/snoop
       - ./volumes/cache:/opt/hoover/cache
-      - ./volumes/collections:/opt/hoover/collections
+      - ./collections:/opt/hoover/collections
       - ./snoop-settings.py:/opt/hoover/snoop/snoop/site/settings/local.py
     ports:
       - 8001:8001

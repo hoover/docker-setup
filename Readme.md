@@ -26,7 +26,7 @@ These instructions have been tested on Debian Jessie.
     git clone https://github.com/hoover/snoop
     git clone https://github.com/hoover/search
     git clone https://github.com/hoover/ui
-    mkdir volumes volumes/metrics volumes/metrics/users volumes/cache volumes/cache/archive volumes/cache/msg volumes/cache/pst volumes/collections
+    mkdir volumes volumes/metrics volumes/metrics/users volumes/cache volumes/cache/archive volumes/cache/msg volumes/cache/pst collections
     ```
 
 3. Create configuration files:
