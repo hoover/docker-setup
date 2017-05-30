@@ -7,7 +7,7 @@ base_dir = Path(__file__).absolute().parent.parent.parent.parent
 SECRET_KEY = os.environ['DOCKER_HOOVER_SEARCH_SECRET_KEY']
 
 HOOVER_BASE_URL = os.environ['DOCKER_HOOVER_BASE_URL']
-ALLOWED_HOSTS = [urlparse('http://hoover.docker.tufa').netloc]
+ALLOWED_HOSTS = [urlparse(HOOVER_BASE_URL).netloc]
 
 DEBUG = bool(os.environ.get('DOCKER_HOOVER_SEARCH_DEBUG'))
 
