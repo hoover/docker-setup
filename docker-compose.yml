@@ -18,7 +18,7 @@ services:
     command: python3 manage.py runserver 0.0.0.0:8001
     volumes:
       - ./snoop:/opt/hoover/snoop
-      - ./cache:/opt/hoover/cache
+      - ./volumes/cache:/opt/hoover/cache
       - ./collections:/opt/hoover/collections
       - ./snoop-settings.py:/opt/hoover/snoop/snoop/site/settings/local.py
     ports:
