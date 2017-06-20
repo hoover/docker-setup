@@ -46,6 +46,12 @@ These instructions have been tested on Debian Jessie.
         DOCKER_HOOVER_BASE_URL=http://hoover.example.com
         ```
 
+    * `/opt/hoover/nginx.env`:
+
+        ```env
+        NGINX_SERVER_NAME=hoover.example.com
+        ```
+
 4. Spin up the docker containers, run migrations, create amdin user:
 
     ```bash
