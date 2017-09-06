@@ -63,24 +63,7 @@ These instructions have been tested on Debian Jessie.
     docker-compose up -d
     ```
 
-5. Set up nginx as reverse proxy:
-
-    ```bash
-    apt-get install -y nginx
-    cat > /etc/nginx/sites-enabled/hoover <<EOF
-    server {
-      listen 80;
-      server_name hoover.example.com;
-      location / {
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host \$host;
-      }
-    }
-    EOF
-    service nginx reload
-    ```
-
-6. Import the test dataset:
+5. Import the test dataset:
 
     ```bash
     git clone https://github.com/hoover/testdata collections/testdata
