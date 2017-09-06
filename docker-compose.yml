@@ -15,14 +15,11 @@ services:
 
   snoop:
     build: ./snoop
-    command: python3 manage.py runserver 0.0.0.0:8001
     volumes:
       - ./snoop:/opt/hoover/snoop
       - ./volumes/cache:/opt/hoover/cache
       - ./collections:/opt/hoover/collections
       - ./snoop-settings.py:/opt/hoover/snoop/snoop/site/settings/local.py
-    ports:
-      - 8001:8001
     depends_on:
       - snoop-pg
       - snoop-tika
@@ -50,14 +47,11 @@ services:
 
   search:
     build: ./search
-    command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - ./search:/opt/hoover/search
       - ./ui/build:/opt/hoover/ui/build
       - ./volumes/metrics:/opt/hoover/metrics
       - ./search-settings.py:/opt/hoover/search/hoover/site/settings/local.py
-    ports:
-      - 8000:8000
     depends_on:
       - search-pg
       - search-es

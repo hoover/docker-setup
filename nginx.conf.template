@@ -12,7 +12,7 @@ http {
     server_name ${NGINX_SERVER_NAME};
 
     location / {
-      proxy_pass http://search:8000;
+      proxy_pass http://search;
       client_max_body_size 100m;
       proxy_set_header Host $host;
     }

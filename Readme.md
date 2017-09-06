@@ -72,6 +72,6 @@ These instructions have been tested on Debian Jessie.
     docker-compose run --rm snoop ./manage.py walk testdata
     docker-compose run --rm snoop ./manage.py digestqueue
     docker-compose run --rm snoop ./manage.py worker digest
-    docker-compose run --rm search ./manage.py addcollection testdata http://snoop:8001/testdata/json
+    docker-compose run --rm search ./manage.py addcollection testdata http://snoop/testdata/json
     docker-compose run --rm search ./manage.py update -v2 testdata
     ```
