@@ -4,3 +4,4 @@
 /ui
 /collections
 /volumes
+/docker-compose.override.yml
