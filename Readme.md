@@ -18,14 +18,11 @@ These instructions have been tested on Debian Jessie.
     chmod +x /usr/local/bin/docker-compose
     ```
 
-2. Clone the repos and set up folders:
+2. Clone the repo and set up folders:
 
     ```bash
     git clone https://github.com/hoover/docker-setup /opt/hoover
     cd /opt/hoover
-    git clone https://github.com/hoover/snoop
-    git clone https://github.com/hoover/search
-    git clone https://github.com/hoover/ui
     mkdir volumes volumes/metrics volumes/metrics/users volumes/cache volumes/cache/archive volumes/cache/msg volumes/cache/pst collections
     ```
 

@@ -14,9 +14,8 @@ services:
     image: logicalspark/docker-tikaserver
 
   snoop:
-    build: ./snoop
+    image: liquidinvestigations/hoover-snoop
     volumes:
-      - ./snoop:/opt/hoover/snoop
       - ./volumes/cache:/opt/hoover/cache
       - ./collections:/opt/hoover/collections
       - ./snoop-settings.py:/opt/hoover/snoop/snoop/site/settings/local.py
@@ -41,14 +40,13 @@ services:
       - ./volumes/search-es/data:/usr/share/elasticsearch/data
 
   ui:
-    build: ./ui
+    image: liquidinvestigations/hoover-ui
     volumes:
       - ./ui/build:/opt/hoover/ui/build
 
   search:
-    build: ./search
+    image: liquidinvestigations/hoover-search
     volumes:
-      - ./search:/opt/hoover/search
       - ./ui/build:/opt/hoover/ui/build
       - ./volumes/metrics:/opt/hoover/metrics
       - ./search-settings.py:/opt/hoover/search/hoover/site/settings/local.py
