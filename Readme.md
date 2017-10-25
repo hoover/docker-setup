@@ -72,3 +72,37 @@ These instructions have been tested on Debian Jessie.
     docker-compose run --rm search ./manage.py addcollection testdata http://snoop/testdata/json
     docker-compose run --rm search ./manage.py update -v2 testdata
     ```
+
+### Importing OCR'ed documents
+The OCR process (Optical Character Recognition – extracting machine-readable
+text from scanned documents) is done external to Hoover, using e.g. Tesseract.
+Try the Python pypdftoocr package. The resulting OCR'ed documents should be PDF
+files whose filename is the MD5 checksum of the _original_ document, e.g.
+`d41d8cd98f00b204e9800998ecf8427e.pdf`. Put all the OCR'ed files in a folder
+(we'll call it _ocr foler_ below) and follow these steps to import them into
+Hoover:
+
+* The _ocr folder_ should be in a path accessible to the hoover docker images,
+  e.g. in the shared "collections" folder, `/opt/hoover/collections/ocr/myocr`.
+
+* Register _ocr folder_ as a source for OCR named `myocr` (choose any name you
+  like):
+
+    ```
+    docker-compose run --rm snoop ./manage.py collection mycol --set-ocr myocr /opt/hoover/collections/ocr/myocr
+    ```
+
+* Import the OCR'ed files:
+
+    ```
+    docker-compose run --rm snoop ./manage.py walkocr mycol myocr
+    docker-compose run --rm snoop ./manage.py worker ocr
+    ```
+
+* Re-index the collection:
+
+    ```
+    docker-compose run --rm snoop ./manage.py digestqueue
+    docker-compose run --rm snoop ./manage.py worker digest
+    docker-compose run --rm search ./manage.py update -v2 mycol
+    ```
