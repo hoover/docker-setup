@@ -43,12 +43,6 @@ These instructions have been tested on Debian Jessie.
         DOCKER_HOOVER_BASE_URL=http://hoover.example.com
         ```
 
-    * `/opt/hoover/nginx.env`:
-
-        ```env
-        NGINX_SERVER_NAME=hoover.example.com
-        ```
-
 4. Spin up the docker containers, run migrations, create amdin user:
 
     ```bash
@@ -72,6 +66,11 @@ These instructions have been tested on Debian Jessie.
     docker-compose run --rm search ./manage.py addcollection testdata http://snoop/testdata/json
     docker-compose run --rm search ./manage.py update -v2 testdata
     ```
+
+The _search_ app will listen on port 57515, which you can reverse-proxy with
+nginx, to access hoover from a browser:
+https://www.nginx.com/resources/admin-guide/reverse-proxy/
+
 
 ### Importing OCR'ed documents
 The OCR process (Optical Character Recognition – extracting machine-readable
