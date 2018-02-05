@@ -10,19 +10,36 @@ services:
       POSTGRES_USER: snoop
       POSTGRES_DATABASE: snoop
 
+  snoop-rabbitmq:
+    image: rabbitmq:3.7
+
   snoop-tika:
     image: logicalspark/docker-tikaserver
 
-  snoop:
-    image: liquidinvestigations/hoover-snoop
+  snoop-worker:
+    #TODO image: liquidinvestigations/hoover-snoop2
+    image: snoop2
     volumes:
-      - ./volumes/cache:/opt/hoover/cache
       - ./collections:/opt/hoover/collections
-      - ./snoop-settings.py:/opt/hoover/snoop/snoop/site/settings/local.py
+      - ./snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
     depends_on:
       - snoop-pg
+      - snoop-rabbitmq
       - snoop-tika
-      - search-es
+    env_file:
+      - snoop.env
+    command: ./manage.py runworker
+
+  snoop:
+    #TODO image: liquidinvestigations/hoover-snoop2
+    image: snoop2
+    volumes:
+      - ./collections:/opt/hoover/collections
+      - ./snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+    depends_on:
+      - snoop-pg
+      - snoop-rabbitmq
+      - snoop-tika
     env_file:
       - snoop.env
 

@@ -64,12 +64,14 @@ These instructions have been tested on Debian Jessie.
 
     ```bash
     git clone https://github.com/hoover/testdata collections/testdata
-    docker-compose run --rm snoop ./manage.py createcollection /opt/hoover/collections/testdata/data testdata testdata testdata testdata
-    docker-compose run --rm snoop ./manage.py resetindex testdata
-    docker-compose run --rm snoop ./manage.py walk testdata
-    docker-compose run --rm snoop ./manage.py digestqueue
-    docker-compose run --rm snoop ./manage.py worker digest
+    docker-compose run --rm snoop ./manage.py createcollection testdata /opt/hoover/collections/testdata/data
+    docker-compose run --rm snoop ./manage.py rundispatcher
+
+    # wait for jobs to finish, i.e. when this command stops printing messages:
+    docker-compose logs -f snoop-worke
+
     docker-compose run --rm search ./manage.py addcollection testdata http://snoop/testdata/json
+    docker-compose run --rm search ./manage.py resetindex testdata
     docker-compose run --rm search ./manage.py update -v2 testdata
     ```
 
@@ -89,20 +91,18 @@ Hoover:
   like):
 
     ```
-    docker-compose run --rm snoop ./manage.py collection mycol --set-ocr myocr /opt/hoover/collections/ocr/myocr
+    docker-compose run --rm snoop ./manage.py createocrsource myocr /opt/hoover/collections/ocr/myocr
     ```
 
 * Import the OCR'ed files:
 
     ```
-    docker-compose run --rm snoop ./manage.py walkocr mycol myocr
-    docker-compose run --rm snoop ./manage.py worker ocr
+    docker-compose run --rm snoop ./manage.py rundispatcher
+    # wait for jobs to finish
     ```
 
 * Re-index the collection:
 
     ```
-    docker-compose run --rm snoop ./manage.py digestqueue
-    docker-compose run --rm snoop ./manage.py worker digest
     docker-compose run --rm search ./manage.py update -v2 mycol
     ```
