@@ -68,7 +68,7 @@ These instructions have been tested on Debian Jessie.
     docker-compose run --rm snoop ./manage.py rundispatcher
 
     # wait for jobs to finish, i.e. when this command stops printing messages:
-    docker-compose logs -f snoop-worke
+    docker-compose logs -f snoop-worker
 
     docker-compose run --rm search ./manage.py addcollection testdata http://snoop/testdata/json
     docker-compose run --rm search ./manage.py resetindex testdata
