@@ -17,8 +17,7 @@ services:
     image: logicalspark/docker-tikaserver
 
   snoop-worker:
-    #TODO image: liquidinvestigations/hoover-snoop2
-    image: snoop2
+    image: liquidinvestigations/hoover-snoop2
     volumes:
       - ./collections:/opt/hoover/collections
       - ./snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
@@ -31,8 +30,7 @@ services:
     command: ./manage.py runworker
 
   snoop:
-    #TODO image: liquidinvestigations/hoover-snoop2
-    image: snoop2
+    image: liquidinvestigations/hoover-snoop2
     volumes:
       - ./collections:/opt/hoover/collections
       - ./snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
