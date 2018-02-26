@@ -64,7 +64,7 @@ These instructions have been tested on Debian Jessie.
     # wait for jobs to finish, i.e. when this command stops printing messages:
     docker-compose logs -f snoop-worker
 
-    docker-compose run --rm search ./manage.py addcollection testdata http://snoop/testdata/json
+    docker-compose run --rm search ./manage.py addcollection testdata http://snoop/collections/testdata/json --public
     docker-compose run --rm search ./manage.py resetindex testdata
     docker-compose run --rm search ./manage.py update -v2 testdata
     ```
