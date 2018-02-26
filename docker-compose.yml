@@ -28,7 +28,7 @@ services:
       - snoop-tika
     env_file:
       - snoop.env
-    command: ./manage.py runworker
+    command: ./manage.py runworkers
 
   snoop:
     image: liquidinvestigations/hoover-snoop2
