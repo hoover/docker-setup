@@ -23,7 +23,7 @@ These instructions have been tested on Debian Jessie.
     ```bash
     git clone https://github.com/hoover/docker-setup /opt/hoover
     cd /opt/hoover
-    mkdir volumes volumes/metrics volumes/metrics/users volumes/cache volumes/cache/archive volumes/cache/msg volumes/cache/pst collections
+    mkdir volumes volumes/metrics volumes/metrics/users collections
     ```
 
 3. Create configuration files:
