@@ -1,7 +1,12 @@
+from urllib.parse import urlparse
 import os
 from .defaultsettings import *
 
 ALLOWED_HOSTS = ['snoop']
+
+snoop_base_url = os.environ['DOCKER_HOOVER_SNOOP_BASE_URL']
+if snoop_base_url:
+    ALLOWED_HOSTS.append(urlparse(snoop_base_url).netloc)
 
 SECRET_KEY = os.environ['DOCKER_HOOVER_SNOOP_SECRET_KEY']
 DEBUG = bool(os.environ.get('DOCKER_HOOVER_SNOOP_DEBUG'))

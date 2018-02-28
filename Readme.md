@@ -33,6 +33,7 @@ These instructions have been tested on Debian Jessie.
         ```env
         DOCKER_HOOVER_SNOOP_SECRET_KEY=some-random-secret
         DOCKER_HOOVER_SNOOP_DEBUG=on
+        DOCKER_HOOVER_SNOOP_BASE_URL=http://snoop.hoover.example.com
         ```
 
     * `/opt/hoover/search.env`:
