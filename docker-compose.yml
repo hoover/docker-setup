@@ -42,6 +42,8 @@ services:
       - snoop-tika
     env_file:
       - snoop.env
+    ports:
+      - 45023:80
 
   search-pg:
     image: postgres:9.6
