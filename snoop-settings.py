@@ -4,7 +4,7 @@ from .defaultsettings import *
 ALLOWED_HOSTS = ['snoop']
 
 SECRET_KEY = os.environ['DOCKER_HOOVER_SNOOP_SECRET_KEY']
-DEBUG = bool(os.environ.get('DOCKER_HOOVER_SEARCH_DEBUG'))
+DEBUG = bool(os.environ.get('DOCKER_HOOVER_SNOOP_DEBUG'))
 
 DATABASES = {
     'default': {

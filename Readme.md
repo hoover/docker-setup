@@ -32,7 +32,7 @@ These instructions have been tested on Debian Jessie.
 
         ```env
         DOCKER_HOOVER_SNOOP_SECRET_KEY=some-random-secret
-        DOCKER_HOOVER_SEARCH_DEBUG=on
+        DOCKER_HOOVER_SNOOP_DEBUG=on
         ```
 
     * `/opt/hoover/search.env`:
