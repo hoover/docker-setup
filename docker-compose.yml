@@ -16,6 +16,24 @@ services:
   snoop-tika:
     image: logicalspark/docker-tikaserver
 
+  snoop-stats-es:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.2
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: '-Xms512m -Xmx512m'
+    ulimits: {memlock: {soft: -1, hard: -1}}
+    volumes:
+      - snoop-stats-es-data:/usr/share/elasticsearch/data
+
+  snoop-stats-kibana:
+    image: docker.elastic.co/kibana/kibana-oss:6.2.2
+    depends_on:
+      - snoop-stats-es
+    environment:
+      ELASTICSEARCH_URL: 'http://snoop-stats-es:9200'
+    ports:
+      - 45022:5601
+
   snoop-worker:
     image: liquidinvestigations/hoover-snoop2
     volumes:
@@ -26,6 +44,7 @@ services:
       - snoop-pg
       - snoop-rabbitmq
       - snoop-tika
+      - snoop-stats-es
     env_file:
       - snoop.env
     command: ./manage.py runworkers
@@ -36,10 +55,12 @@ services:
       - ./collections:/opt/hoover/collections
       - ./snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs:/opt/hoover/snoop/blobs
+      - /mnt/hoover/snoop2:/opt/hoover/snoop
     depends_on:
       - snoop-pg
       - snoop-rabbitmq
       - snoop-tika
+      - snoop-stats-es
     env_file:
       - snoop.env
     ports:
@@ -78,3 +99,6 @@ services:
       - search.env
     ports:
       - 45024:80
+
+volumes:
+  snoop-stats-es-data: {}

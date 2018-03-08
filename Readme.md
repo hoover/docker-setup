@@ -5,7 +5,12 @@ configuration for [Hoover](https://hoover.github.io).
 ### Installation
 These instructions have been tested on Debian Jessie.
 
-1. Install docker:
+1. Increase `vm.max_map_count` to at least 262144, to make elasticsearch happy
+   - see [the official documentation][] for details.
+
+  [the official documentation]: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode
+
+2. Install docker:
 
     ```bash
     apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
@@ -18,7 +23,7 @@ These instructions have been tested on Debian Jessie.
     chmod +x /usr/local/bin/docker-compose
     ```
 
-2. Clone the repo and set up folders:
+3. Clone the repo and set up folders:
 
     ```bash
     git clone https://github.com/hoover/docker-setup /opt/hoover
@@ -26,7 +31,7 @@ These instructions have been tested on Debian Jessie.
     mkdir volumes volumes/metrics volumes/metrics/users collections
     ```
 
-3. Create configuration files:
+4. Create configuration files:
 
     * `/opt/hoover/snoop.env`:
 
@@ -44,7 +49,7 @@ These instructions have been tested on Debian Jessie.
         DOCKER_HOOVER_BASE_URL=http://hoover.example.com
         ```
 
-4. Spin up the docker containers, run migrations, create amdin user:
+5. Spin up the docker containers, run migrations, create amdin user:
 
     ```bash
     docker-compose run --rm snoop ./manage.py migrate
@@ -55,7 +60,7 @@ These instructions have been tested on Debian Jessie.
     docker-compose up -d
     ```
 
-5. Import the test dataset:
+6. Import the test dataset:
 
     ```bash
     git clone https://github.com/hoover/testdata collections/testdata
