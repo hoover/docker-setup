@@ -53,6 +53,7 @@ These instructions have been tested on Debian Jessie.
 
     ```bash
     docker-compose run --rm snoop ./manage.py migrate
+    docker-compose run --rm snoop ./manage.py resetindex
     docker-compose run --rm search ./manage.py migrate
     docker-compose run --rm search ./manage.py createsuperuser
     docker-compose run --rm ui node build.js
