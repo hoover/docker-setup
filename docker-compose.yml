@@ -55,7 +55,6 @@ services:
       - ./collections:/opt/hoover/collections
       - ./snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs:/opt/hoover/snoop/blobs
-      - /mnt/hoover/snoop2:/opt/hoover/snoop
     depends_on:
       - snoop-pg
       - snoop-rabbitmq
