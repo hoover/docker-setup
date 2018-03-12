@@ -11,7 +11,7 @@ services:
       POSTGRES_DATABASE: snoop
 
   snoop-rabbitmq:
-    image: rabbitmq:3.7
+    image: rabbitmq:3.7.3
 
   snoop-tika:
     image: logicalspark/docker-tikaserver
