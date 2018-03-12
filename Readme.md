@@ -75,6 +75,22 @@ These instructions have been tested on Debian Jessie.
     docker-compose run --rm search ./manage.py update -v2 testdata
     ```
 
+
+### Configuring two-factor authentication
+Since hoover-search has built-in support for TOTP two-factor authentication,
+you just need to enable the module by adding a line to `search.env`:
+
+```env
+DOCKER_HOOVER_TWOFACTOR_ENABLED=on
+```
+
+Then generate an invitation for your user (replace `admin` with your username):
+
+```bash
+docker-compose run --rm search ./manage.py invite admin
+```
+
+
 ### Importing OCR'ed documents
 The OCR process (Optical Character Recognition – extracting machine-readable
 text from scanned documents) is done external to Hoover, using e.g. Tesseract.
