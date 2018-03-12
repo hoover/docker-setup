@@ -26,3 +26,5 @@ CELERY_BROKER_URL = 'amqp://snoop-rabbitmq'
 SNOOP_TIKA_URL = 'http://snoop-tika:9998'
 
 SNOOP_ELASTICSEARCH_URL = 'http://snoop-stats-es:9200'
+
+SNOOP_GNUPG_HOME = '/opt/hoover/gnupg'

@@ -37,6 +37,7 @@ services:
   snoop-worker:
     image: liquidinvestigations/hoover-snoop2
     volumes:
+      - ./gnupg:/opt/hoover/gnupg
       - ./collections:/opt/hoover/collections
       - ./snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs:/opt/hoover/snoop/blobs
@@ -52,6 +53,7 @@ services:
   snoop:
     image: liquidinvestigations/hoover-snoop2
     volumes:
+      - ./gnupg:/opt/hoover/gnupg
       - ./collections:/opt/hoover/collections
       - ./snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs:/opt/hoover/snoop/blobs
