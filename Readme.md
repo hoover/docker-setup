@@ -53,7 +53,7 @@ These instructions have been tested on Debian Jessie.
 
     ```bash
     docker-compose run --rm snoop ./manage.py migrate
-    docker-compose run --rm snoop ./manage.py resetindex
+    docker-compose run --rm snoop ./manage.py resetstatsindex
     docker-compose run --rm search ./manage.py migrate
     docker-compose run --rm search ./manage.py createsuperuser
     docker-compose run --rm ui node build.js
@@ -66,13 +66,13 @@ These instructions have been tested on Debian Jessie.
     ```bash
     git clone https://github.com/hoover/testdata collections/testdata
     docker-compose run --rm snoop ./manage.py createcollection testdata /opt/hoover/collections/testdata/data
+    docker-compose run --rm snoop ./manage.py resetcollectionindex testdata
     docker-compose run --rm snoop ./manage.py rundispatcher
 
     # wait for jobs to finish, i.e. when this command stops printing messages:
     docker-compose logs -f snoop-worker
 
     docker-compose run --rm search ./manage.py addcollection testdata http://snoop/collections/testdata/json --public
-    docker-compose run --rm search ./manage.py resetindex testdata
     docker-compose run --rm search ./manage.py update -v2 testdata
     ```
 
