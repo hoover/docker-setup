@@ -11,6 +11,30 @@ ALLOWED_HOSTS = [urlparse(HOOVER_BASE_URL).netloc]
 
 DEBUG = bool(os.environ.get('DOCKER_HOOVER_SEARCH_DEBUG'))
 
+if bool(os.environ.get('DOCKER_HOOVER_TWOFACTOR_ENABLED')):
+    from hoover.site.settings.common import INSTALLED_APPS
+    from hoover.site.settings.common import MIDDLEWARE_CLASSES
+
+    INSTALLED_APPS += (
+        'hoover.contrib.twofactor',
+        'django_otp',
+        'django_otp.plugins.otp_totp',
+    )
+
+    MIDDLEWARE_CLASSES += (
+        'django_otp.middleware.OTPMiddleware',
+        'hoover.contrib.twofactor.middleware.AutoLogout',
+        'hoover.contrib.twofactor.middleware.RequireAuth',
+    )
+
+    if 'DOCKER_HOOVER_TWOFACTOR_INVITATION_VALID' in os.environ:
+        HOOVER_TWOFACTOR_INVITATION_VALID = \
+            int(os.environ['DOCKER_HOOVER_TWOFACTOR_INVITATION_VALID'])
+
+    if 'DOCKER_HOOVER_TWOFACTOR_AUTOLOGOUT' in os.environ:
+        HOOVER_TWOFACTOR_AUTOLOGOUT = \
+            int(os.environ['DOCKER_HOOVER_TWOFACTOR_AUTOLOGOUT'])
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',

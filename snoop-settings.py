@@ -1,11 +1,19 @@
+from urllib.parse import urlparse
 import os
-from pathlib import Path
+from .defaultsettings import *
 
-base_dir = Path(__file__).absolute().parent.parent.parent.parent
+ALLOWED_HOSTS = ['snoop']
+
+snoop_base_url = os.environ['DOCKER_HOOVER_SNOOP_BASE_URL']
+if snoop_base_url:
+    ALLOWED_HOSTS.append(urlparse(snoop_base_url).netloc)
+
+SECRET_KEY = os.environ['DOCKER_HOOVER_SNOOP_SECRET_KEY']
+DEBUG = bool(os.environ.get('DOCKER_HOOVER_SNOOP_DEBUG'))
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'snoop',
         'USER': 'snoop',
         'HOST': 'snoop-pg',
@@ -13,18 +21,10 @@ DATABASES = {
     },
 }
 
-SECRET_KEY = os.environ['DOCKER_HOOVER_SNOOP_SECRET_KEY']
-DEBUG = bool(os.environ.get('DOCKER_HOOVER_SEARCH_DEBUG'))
-ALLOWED_HOSTS = ['snoop']
+CELERY_BROKER_URL = 'amqp://snoop-rabbitmq'
 
-SNOOP_ELASTICSEARCH_URL = 'http://search-es:9200'
-SNOOP_TIKA_SERVER_ENDPOINT = 'http://snoop-tika:9998'
-SNOOP_TIKA_FILE_TYPES = ['doc', 'pdf', 'xls', 'ppt']
-SNOOP_TIKA_MAX_FILE_SIZE = 32 * (2 ** 20)  # 32mb
-SNOOP_MSGCONVERT_SCRIPT = 'msgconvert'
-SNOOP_MSG_CACHE = str(base_dir.parent / 'cache' / 'msg')
-SNOOP_ARCHIVE_CACHE_ROOT = str(base_dir.parent / 'cache' / 'archive')
-SNOOP_SEVENZIP_BINARY = '7z'
-SNOOP_ELASTICSEARCH_INDEX = 'hoover'
-SNOOP_READPST_BINARY = 'readpst'
-SNOOP_PST_CACHE_ROOT = str(base_dir.parent / 'cache' / 'pst')
+SNOOP_TIKA_URL = 'http://snoop-tika:9998'
+
+SNOOP_ELASTICSEARCH_URL = 'http://snoop-stats-es:9200'
+
+SNOOP_GNUPG_HOME = '/opt/hoover/gnupg'

@@ -10,21 +10,62 @@ services:
       POSTGRES_USER: snoop
       POSTGRES_DATABASE: snoop
 
+  snoop-rabbitmq:
+    image: rabbitmq:3.7.3
+
   snoop-tika:
     image: logicalspark/docker-tikaserver
 
-  snoop:
-    image: liquidinvestigations/hoover-snoop
+  snoop-stats-es:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.2
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: '-Xms512m -Xmx512m'
+    ulimits: {memlock: {soft: -1, hard: -1}}
     volumes:
-      - ./volumes/cache:/opt/hoover/cache
+      - snoop-stats-es-data:/usr/share/elasticsearch/data
+
+  snoop-stats-kibana:
+    image: docker.elastic.co/kibana/kibana-oss:6.2.2
+    depends_on:
+      - snoop-stats-es
+    environment:
+      ELASTICSEARCH_URL: 'http://snoop-stats-es:9200'
+    ports:
+      - 45022:5601
+
+  snoop-worker:
+    image: liquidinvestigations/hoover-snoop2
+    volumes:
+      - ./gnupg:/opt/hoover/gnupg
       - ./collections:/opt/hoover/collections
-      - ./snoop-settings.py:/opt/hoover/snoop/snoop/site/settings/local.py
+      - ./snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs:/opt/hoover/snoop/blobs
     depends_on:
       - snoop-pg
+      - snoop-rabbitmq
       - snoop-tika
-      - search-es
+      - snoop-stats-es
     env_file:
       - snoop.env
+    command: ./manage.py runworkers
+
+  snoop:
+    image: liquidinvestigations/hoover-snoop2
+    volumes:
+      - ./gnupg:/opt/hoover/gnupg
+      - ./collections:/opt/hoover/collections
+      - ./snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs:/opt/hoover/snoop/blobs
+    depends_on:
+      - snoop-pg
+      - snoop-rabbitmq
+      - snoop-tika
+      - snoop-stats-es
+    env_file:
+      - snoop.env
+    ports:
+      - 45023:80
 
   search-pg:
     image: postgres:9.6
@@ -57,15 +98,8 @@ services:
       - snoop
     env_file:
       - search.env
-
-  nginx:
-    image: nginx
-    command: /bin/bash -c "envsubst '$$NGINX_SERVER_NAME' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
-    volumes:
-      - ./nginx.conf.template:/etc/nginx/nginx.conf.template
     ports:
-      - 80:80
-    depends_on:
-      - search
-    env_file:
-      - nginx.env
+      - 45024:80
+
+volumes:
+  snoop-stats-es-data: {}
