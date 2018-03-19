@@ -46,6 +46,7 @@ services:
       - snoop-rabbitmq
       - snoop-tika
       - snoop-stats-es
+      - search-es
     env_file:
       - snoop.env
     command: ./manage.py runworkers
@@ -62,6 +63,7 @@ services:
       - snoop-rabbitmq
       - snoop-tika
       - snoop-stats-es
+      - search-es
     env_file:
       - snoop.env
     ports:
