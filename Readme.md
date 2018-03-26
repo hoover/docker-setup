@@ -73,7 +73,6 @@ These instructions have been tested on Debian Jessie.
     docker-compose logs -f snoop-worker
 
     docker-compose run --rm search ./manage.py addcollection testdata http://snoop/collections/testdata/json --public
-    docker-compose run --rm search ./manage.py update -v2 testdata
     ```
 
 
@@ -102,24 +101,13 @@ files whose filename is the MD5 checksum of the _original_ document, e.g.
 Hoover:
 
 * The _ocr folder_ should be in a path accessible to the hoover docker images,
-  e.g. in the shared "collections" folder, `/opt/hoover/collections/ocr/myocr`.
+  e.g. in the shared "collections" folder,
+  `/opt/hoover/collections/testdata/ocr/myocr`.
 
 * Register _ocr folder_ as a source for OCR named `myocr` (choose any name you
   like):
 
     ```
-    docker-compose run --rm snoop ./manage.py createocrsource myocr /opt/hoover/collections/ocr/myocr
-    ```
-
-* Import the OCR'ed files:
-
-    ```
-    docker-compose run --rm snoop ./manage.py rundispatcher
+    docker-compose run --rm snoop ./manage.py createocrsource myocr /opt/hoover/collections/testdata/ocr/myocr
     # wait for jobs to finish
-    ```
-
-* Re-index the collection:
-
-    ```
-    docker-compose run --rm search ./manage.py update -v2 mycol
     ```
