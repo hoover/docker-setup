@@ -19,6 +19,7 @@ if bool(os.environ.get('DOCKER_HOOVER_TWOFACTOR_ENABLED')):
         'hoover.contrib.twofactor',
         'django_otp',
         'django_otp.plugins.otp_totp',
+        'hoover.contrib.ratelimit',
     )
 
     MIDDLEWARE_CLASSES += (
@@ -51,3 +52,5 @@ HOOVER_UPLOADS_ROOT = str(base_dir / 'uploads')
 HOOVER_UI_ROOT = str(base_dir.parent / 'ui' / 'build')
 HOOVER_EVENTS_DIR = str(base_dir.parent / 'metrics' / 'users')
 HOOVER_ELASTICSEARCH_URL = 'http://search-es:9200'
+HOOVER_RATELIMIT_USER = (30, 60) # 30 per minute
+HOOVER_TWOFACTOR_RATELIMIT = (3, 60) # 3 per minute
