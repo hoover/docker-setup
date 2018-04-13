@@ -1,7 +1,11 @@
-/*.env
+/snoop.env
+/search.env
+/nginx.env
+/docker-compose.override.yml
 /search
 /snoop
 /ui
 /collections
 /volumes
-/docker-compose.override.yml
+/snoop-blobs
+/gnupg

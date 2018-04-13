@@ -5,7 +5,12 @@ configuration for [Hoover](https://hoover.github.io).
 ### Installation
 These instructions have been tested on Debian Jessie.
 
-1. Install docker:
+1. Increase `vm.max_map_count` to at least 262144, to make elasticsearch happy
+   - see [the official documentation][] for details.
+
+  [the official documentation]: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode
+
+2. Install docker:
 
     ```bash
     apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
@@ -18,21 +23,22 @@ These instructions have been tested on Debian Jessie.
     chmod +x /usr/local/bin/docker-compose
     ```
 
-2. Clone the repo and set up folders:
+3. Clone the repo and set up folders:
 
     ```bash
     git clone https://github.com/hoover/docker-setup /opt/hoover
     cd /opt/hoover
-    mkdir volumes volumes/metrics volumes/metrics/users volumes/cache volumes/cache/archive volumes/cache/msg volumes/cache/pst collections
+    mkdir volumes volumes/metrics volumes/metrics/users collections
     ```
 
-3. Create configuration files:
+4. Create configuration files:
 
     * `/opt/hoover/snoop.env`:
 
         ```env
         DOCKER_HOOVER_SNOOP_SECRET_KEY=some-random-secret
-        DOCKER_HOOVER_SEARCH_DEBUG=on
+        DOCKER_HOOVER_SNOOP_DEBUG=on
+        DOCKER_HOOVER_SNOOP_BASE_URL=http://snoop.hoover.example.com
         ```
 
     * `/opt/hoover/search.env`:
@@ -43,16 +49,11 @@ These instructions have been tested on Debian Jessie.
         DOCKER_HOOVER_BASE_URL=http://hoover.example.com
         ```
 
-    * `/opt/hoover/nginx.env`:
-
-        ```env
-        NGINX_SERVER_NAME=hoover.example.com
-        ```
-
-4. Spin up the docker containers, run migrations, create amdin user:
+5. Spin up the docker containers, run migrations, create amdin user:
 
     ```bash
     docker-compose run --rm snoop ./manage.py migrate
+    docker-compose run --rm snoop ./manage.py resetstatsindex
     docker-compose run --rm search ./manage.py migrate
     docker-compose run --rm search ./manage.py createsuperuser
     docker-compose run --rm ui node build.js
@@ -60,15 +61,53 @@ These instructions have been tested on Debian Jessie.
     docker-compose up -d
     ```
 
-5. Import the test dataset:
+6. Import the test dataset:
 
     ```bash
     git clone https://github.com/hoover/testdata collections/testdata
-    docker-compose run --rm snoop ./manage.py createcollection /opt/hoover/collections/testdata/data testdata testdata testdata testdata
-    docker-compose run --rm snoop ./manage.py resetindex testdata
-    docker-compose run --rm snoop ./manage.py walk testdata
-    docker-compose run --rm snoop ./manage.py digestqueue
-    docker-compose run --rm snoop ./manage.py worker digest
-    docker-compose run --rm search ./manage.py addcollection testdata http://snoop/testdata/json
-    docker-compose run --rm search ./manage.py update -v2 testdata
+    docker-compose run --rm snoop ./manage.py createcollection testdata /opt/hoover/collections/testdata/data
+    docker-compose run --rm snoop ./manage.py resetcollectionindex testdata
+    docker-compose run --rm snoop ./manage.py rundispatcher
+
+    # wait for jobs to finish, i.e. when this command stops printing messages:
+    docker-compose logs -f snoop-worker
+
+    docker-compose run --rm search ./manage.py addcollection testdata http://snoop/collections/testdata/json --public
+    ```
+
+
+### Configuring two-factor authentication
+Since hoover-search has built-in support for TOTP two-factor authentication,
+you just need to enable the module by adding a line to `search.env`:
+
+```env
+DOCKER_HOOVER_TWOFACTOR_ENABLED=on
+```
+
+Then generate an invitation for your user (replace `admin` with your username):
+
+```bash
+docker-compose run --rm search ./manage.py invite admin
+```
+
+
+### Importing OCR'ed documents
+The OCR process (Optical Character Recognition – extracting machine-readable
+text from scanned documents) is done external to Hoover, using e.g. Tesseract.
+Try the Python pypdftoocr package. The resulting OCR'ed documents should be PDF
+files whose filename is the MD5 checksum of the _original_ document, e.g.
+`d41d8cd98f00b204e9800998ecf8427e.pdf`. Put all the OCR'ed files in a folder
+(we'll call it _ocr foler_ below) and follow these steps to import them into
+Hoover:
+
+* The _ocr folder_ should be in a path accessible to the hoover docker images,
+  e.g. in the shared "collections" folder,
+  `/opt/hoover/collections/testdata/ocr/myocr`.
+
+* Register _ocr folder_ as a source for OCR named `myocr` (choose any name you
+  like):
+
+    ```
+    docker-compose run --rm snoop ./manage.py createocrsource myocr /opt/hoover/collections/testdata/ocr/myocr
+    # wait for jobs to finish
     ```
