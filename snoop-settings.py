@@ -27,6 +27,7 @@ SNOOP_TIKA_URL = 'http://snoop-tika:9998'
 
 if os.environ.get('DOCKER_HOOVER_SNOOP_STATS', 'on') == 'on':
     SNOOP_STATS_ELASTICSEARCH_URL = 'http://snoop-stats-es:9200'
-    SNOOP_COLLECTIONS_ELASTICSEARCH_URL = 'http://search-es:9200'
+
+SNOOP_COLLECTIONS_ELASTICSEARCH_URL = 'http://search-es:9200'
 
 SNOOP_GNUPG_HOME = '/opt/hoover/gnupg'
