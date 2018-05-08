@@ -111,3 +111,40 @@ Hoover:
     docker-compose run --rm snoop ./manage.py createocrsource myocr /opt/hoover/collections/testdata/ocr/myocr
     # wait for jobs to finish
     ```
+
+
+### Development
+Clone the code repositories:
+
+```shell
+git clone https://github.com/hoover/docker-setup
+git clone https://github.com/hoover/snoop2
+git clone https://github.com/hoover/search
+git clone https://github.com/hoover/ui
+```
+
+Create a `docker-compose.override.yml` file in `docker-setup` with the
+following content. It will mount the code repositories inside the docker
+containers to run the local development code:
+
+```yaml
+version: "2"
+
+services:
+
+  snoop-worker:
+    volumes:
+      - ../snoop2:/opt/hoover/snoop
+
+  snoop:
+    volumes:
+      - ../snoop2:/opt/hoover/snoop
+
+  search:
+    volumes:
+      - ../search:/opt/hoover/search
+
+  ui:
+    volumes:
+      - ../ui:/opt/hoover/ui
+```
