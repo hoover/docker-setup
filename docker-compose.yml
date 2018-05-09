@@ -58,6 +58,7 @@ services:
       - ./collections:/opt/hoover/collections
       - ./snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs:/opt/hoover/snoop/blobs
+      - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
     depends_on:
       - snoop-pg
       - snoop-rabbitmq
@@ -81,6 +82,9 @@ services:
     image: elasticsearch:2
     volumes:
       - ./volumes/search-es/data:/usr/share/elasticsearch/data
+      - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
+    environment:
+      ES_JAVA_OPTS: '-Des.path.repo=/opt/hoover/es-snapshots'
 
   ui:
     image: liquidinvestigations/hoover-ui
