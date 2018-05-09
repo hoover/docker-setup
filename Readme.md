@@ -148,3 +148,34 @@ services:
     volumes:
       - ../ui:/opt/hoover/ui
 ```
+
+
+### Docker images
+Docker-hub builds images based on the Hoover GitHub repos triggered by pushes
+to the master branches: [snoop2][], [search][], [ui][].
+
+[snoop2]: https://hub.docker.com/r/liquidinvestigations/hoover-snoop2/
+[search]: https://hub.docker.com/r/liquidinvestigations/hoover-search/
+[ui]: https://hub.docker.com/r/liquidinvestigations/hoover-ui/
+
+You can also build images locally. For example, the snoop2 image:
+
+```
+cd snoop2
+docker build . --tag snoop2
+```
+
+Then add this snippet to `docker-compose.override.yml` to test the image
+locally, and run `docker-compose up -d` to (re)start the containers:
+
+```yaml
+version: "2"
+
+services:
+
+  snoop-worker:
+    image: snoop2
+
+  snoop:
+    image: snoop2
+```
