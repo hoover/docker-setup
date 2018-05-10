@@ -28,7 +28,8 @@ These instructions have been tested on Debian Jessie.
     ```bash
     git clone https://github.com/hoover/docker-setup /opt/hoover
     cd /opt/hoover
-    mkdir volumes volumes/metrics volumes/metrics/users collections
+    mkdir volumes volumes/metrics volumes/metrics/users volumes/search-es-snapshots collections
+    chmod 777 volumes/search-es-snapshots
     ```
 
 4. Create configuration files:
