@@ -28,7 +28,8 @@ These instructions have been tested on Debian Jessie.
     ```bash
     git clone https://github.com/hoover/docker-setup /opt/hoover
     cd /opt/hoover
-    mkdir volumes volumes/metrics volumes/metrics/users collections
+    mkdir volumes volumes/metrics volumes/metrics/users volumes/search-es-snapshots collections
+    chmod 777 volumes/search-es-snapshots
     ```
 
 4. Create configuration files:
@@ -179,3 +180,29 @@ services:
   snoop:
     image: snoop2
 ```
+
+
+### Exporting and importing collections
+Snoop2 provides commands to export and import collection database records,
+blobs, and elasticsearch indexes. The collection name must be the same - this
+limitation could be lifted if the elasticsearch import code is modified to
+rename the index on import.
+
+Exporting:
+
+```shell
+docker-compose run --rm -T snoop ./manage.py exportcollectiondb testdata | gzip -1 > testdata-db.tgz
+docker-compose run --rm -T snoop ./manage.py exportcollectionindex testdata | gzip -1 > testdata-index.tgz
+docker-compose run --rm -T snoop ./manage.py exportcollectionblobs testdata | gzip -1 > testdata-blobs.tgz
+```
+
+Importing:
+
+```shell
+docker-compose run --rm -T snoop ./manage.py importcollectiondb testdata < testdata-db.tgz
+docker-compose run --rm -T snoop ./manage.py importcollectionindex testdata < testdata-index.tgz
+docker-compose run --rm -T snoop ./manage.py importblobs < testdata-blobs.tgz
+```
+
+Note that the `importblobs` command doesn't expect a collection as argument;
+the blobs have no connection to any particular collection.
