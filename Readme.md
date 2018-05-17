@@ -206,3 +206,14 @@ docker-compose run --rm -T snoop ./manage.py importblobs < testdata-blobs.tgz
 
 Note that the `importblobs` command doesn't expect a collection as argument;
 the blobs have no connection to any particular collection.
+
+
+### Deleting a collection
+```shell
+docker-compose run --rm snoop ./manage.py deletecollection testdata
+```
+
+This will delete the collection and associated files and directories, the
+elasticsearch index, and all tasks directly linked to the collection. It does
+NOT delete any blobs or tasks potentially shared with other collections, i.e.
+tasks that only handle content from specific blobs.
