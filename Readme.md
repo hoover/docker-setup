@@ -67,8 +67,6 @@ These instructions have been tested on Debian Jessie.
     ```bash
     git clone https://github.com/hoover/testdata collections/testdata
     docker-compose run --rm snoop ./manage.py createcollection testdata /opt/hoover/collections/testdata/data
-    docker-compose run --rm snoop ./manage.py resetcollectionindex testdata
-    docker-compose run --rm snoop ./manage.py rundispatcher
 
     # wait for jobs to finish, i.e. when this command stops printing messages:
     docker-compose logs -f snoop-worker
@@ -190,6 +188,28 @@ services:
 
   snoop:
     image: snoop2
+```
+
+
+## Working with collections
+
+
+### Creating a collection
+To create a collection, copy the original files in a folder inside the
+`collections` folder. Then run the `createcollection` command for snoop, and
+the `addcollection` command for search. It will set up a new collection in the
+snoop SQL database, create an elasticsearch index, and it will trigger "walk"
+tasks to analyze the collection's contents. As the files get processed they
+will show up in the search results.
+
+In this example, we'll name the collection `foo`, and assume the data is copied
+to the `collections/foo` directory. The final `--public` flag will make the
+collection accessible to all users (or anybody who can access the server if
+two-factor authentication is not enabled).
+
+```shell
+docker-compose run --rm snoop ./manage.py createcollection foo /opt/hoover/collections/foo
+docker-compose run --rm search ./manage.py addcollection foo http://snoop/collections/foo/json --public
 ```
 
 
