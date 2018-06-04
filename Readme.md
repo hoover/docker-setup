@@ -248,3 +248,23 @@ This will delete the collection and associated files and directories, the
 elasticsearch index, and all tasks directly linked to the collection. It does
 NOT delete any blobs or tasks potentially shared with other collections, i.e.
 tasks that only handle content from specific blobs.
+
+
+### Monitoring snoop processing of a collection
+Snoop provides an administration interface with statistics on the progress of
+analysis on collections. It is exposed via docker on port 45023. To access it
+you need to create an account:
+
+```shell
+docker-compose run --rm snoop ./manage.py createsuperuser
+```
+
+Sometimes it's necessary to rerun some snoop tasks. You can reschedule them
+using this command:
+
+```shell
+docker-compose run --rm snoop ./manage.py retrytasks --func filesystem.walk --status pending
+```
+
+Both `--func` and `--status` are optional and serve to filter down the number
+of tasks.
