@@ -114,6 +114,17 @@ Hoover:
     ```
 
 
+### Decrypting PGP emails
+If you have access to PGP private keys, snoop can decrypt emails that were
+encrypted for those keys. Import the keys into a gnupg home folder placed next
+to the `docker-compose.yml` file. Snoop will automatically use this folder when
+it encounters an encrypted email.
+
+```shell
+gpg --home gnupg --import < path_to_key_file
+```
+
+
 ### Development
 Clone the code repositories:
 
