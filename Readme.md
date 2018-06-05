@@ -67,8 +67,6 @@ These instructions have been tested on Debian Jessie.
     ```bash
     git clone https://github.com/hoover/testdata collections/testdata
     docker-compose run --rm snoop ./manage.py createcollection testdata /opt/hoover/collections/testdata/data
-    docker-compose run --rm snoop ./manage.py resetcollectionindex testdata
-    docker-compose run --rm snoop ./manage.py rundispatcher
 
     # wait for jobs to finish, i.e. when this command stops printing messages:
     docker-compose logs -f snoop-worker
@@ -112,6 +110,17 @@ Hoover:
     docker-compose run --rm snoop ./manage.py createocrsource myocr /opt/hoover/collections/testdata/ocr/myocr
     # wait for jobs to finish
     ```
+
+
+### Decrypting PGP emails
+If you have access to PGP private keys, snoop can decrypt emails that were
+encrypted for those keys. Import the keys into a gnupg home folder placed next
+to the `docker-compose.yml` file. Snoop will automatically use this folder when
+it encounters an encrypted email.
+
+```shell
+gpg --home gnupg --import < path_to_key_file
+```
 
 
 ### Development
@@ -182,6 +191,28 @@ services:
 ```
 
 
+## Working with collections
+
+
+### Creating a collection
+To create a collection, copy the original files in a folder inside the
+`collections` folder. Then run the `createcollection` command for snoop, and
+the `addcollection` command for search. It will set up a new collection in the
+snoop SQL database, create an elasticsearch index, and it will trigger "walk"
+tasks to analyze the collection's contents. As the files get processed they
+will show up in the search results.
+
+In this example, we'll name the collection `foo`, and assume the data is copied
+to the `collections/foo` directory. The final `--public` flag will make the
+collection accessible to all users (or anybody who can access the server if
+two-factor authentication is not enabled).
+
+```shell
+docker-compose run --rm snoop ./manage.py createcollection foo /opt/hoover/collections/foo
+docker-compose run --rm search ./manage.py addcollection foo http://snoop/collections/foo/json --public
+```
+
+
 ### Exporting and importing collections
 Snoop2 provides commands to export and import collection database records,
 blobs, and elasticsearch indexes. The collection name must be the same - this
@@ -217,3 +248,23 @@ This will delete the collection and associated files and directories, the
 elasticsearch index, and all tasks directly linked to the collection. It does
 NOT delete any blobs or tasks potentially shared with other collections, i.e.
 tasks that only handle content from specific blobs.
+
+
+### Monitoring snoop processing of a collection
+Snoop provides an administration interface with statistics on the progress of
+analysis on collections. It is exposed via docker on port 45023. To access it
+you need to create an account:
+
+```shell
+docker-compose run --rm snoop ./manage.py createsuperuser
+```
+
+Sometimes it's necessary to rerun some snoop tasks. You can reschedule them
+using this command:
+
+```shell
+docker-compose run --rm snoop ./manage.py retrytasks --func filesystem.walk --status pending
+```
+
+Both `--func` and `--status` are optional and serve to filter down the number
+of tasks.
