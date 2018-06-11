@@ -122,6 +122,14 @@ it encounters an encrypted email.
 gpg --home gnupg --import < path_to_key_file
 ```
 
+You may need to remove an existing but known password once and use this key instead.
+
+```shell
+gpg --home gnupg --export-options export-reset-subkey-passwd --export-secret-subkeys ABCDEF01 > path_to_key_nopassword
+gpg --home gnupg --delete-secret-keys ABCDEF01
+gpg --home gnupg --delete-key ABCDEF01
+gpg --home gnupg --import < path_to_key_nopassword
+```
 
 ### Development
 Clone the code repositories:
