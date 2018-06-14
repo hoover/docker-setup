@@ -198,6 +198,22 @@ services:
     image: snoop2
 ```
 
+### Testing
+For Snoop and Search tests based on [pytest][] can be executed using this commands:
+
+[pytest]: https://docs.pytest.org/en/latest/
+
+```shell
+docker-compose run --rm snoop pytest
+docker-compose run --rm search pytest
+```
+
+The test definitions can be found in the `testsuite` folder of each project. Individual tests can be started
+using:
+
+```shell
+docker-compose run --rm snoop pytest testsuite/test_tika.py
+```
 
 ## Working with collections
 
