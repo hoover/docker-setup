@@ -57,7 +57,7 @@ These instructions have been tested on Debian Jessie.
     docker-compose run --rm snoop ./manage.py resetstatsindex
     docker-compose run --rm search ./manage.py migrate
     docker-compose run --rm search ./manage.py createsuperuser
-    docker-compose run --rm ui node build.js
+    docker-compose run --rm ui npm run build
     docker-compose run --rm search ./manage.py collectstatic --noinput
     docker-compose up -d
     ```
