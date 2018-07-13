@@ -50,6 +50,13 @@ These instructions have been tested on Debian Jessie.
         DOCKER_HOOVER_BASE_URL=http://hoover.example.com
         ```
 
+    For local development, add the following to `/etc/hosts` to make the base URLs resolve to localhost:
+
+        ```
+          127.0.0.1 snoop.hoover.example.com
+          127.0.0.1 hoover.example.com
+        ```
+
 5. Spin up the docker containers, run migrations, create amdin user:
 
     ```bash
