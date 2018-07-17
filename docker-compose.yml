@@ -97,6 +97,7 @@ services:
       - ./ui/build:/opt/hoover/ui/build
       - ./volumes/metrics:/opt/hoover/metrics
       - ./search-settings.py:/opt/hoover/search/hoover/site/settings/local.py
+      - ./search-settings-testing.py:/opt/hoover/search/hoover/site/settings/testing_local.py
     depends_on:
       - search-pg
       - search-es
