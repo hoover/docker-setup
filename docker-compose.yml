@@ -84,7 +84,7 @@ services:
       - ./volumes/search-es/data:/usr/share/elasticsearch/data
       - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
     environment:
-      ES_JAVA_OPTS: '-Des.path.repo=/opt/hoover/es-snapshots'
+      path.repo: /opt/hoover/es-snapshots
 
   ui:
     image: liquidinvestigations/hoover-ui
