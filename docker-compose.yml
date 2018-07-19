@@ -79,7 +79,7 @@ services:
       POSTGRES_DATABASE: search
 
   search-es:
-    image: elasticsearch:2
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.3.1
     volumes:
       - ./volumes/search-es/data:/usr/share/elasticsearch/data
       - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
