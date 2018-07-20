@@ -84,6 +84,7 @@ services:
       - ./volumes/search-es/data:/usr/share/elasticsearch/data
       - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
     environment:
+      discovery.type: single-node
       path.repo: /opt/hoover/es-snapshots
 
   ui:
