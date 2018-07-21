@@ -71,6 +71,7 @@ services:
       - 45023:80
     environment:
       WAIT_HOSTS: search-es:9200, search-pg:5432
+      WAIT_HOSTS_TIMEOUT: 60
 
   search-pg:
     image: postgres:9.6
@@ -112,6 +113,7 @@ services:
       - 45024:80
     environment:
       WAIT_HOSTS: search-es:9200, search-pg:5432
+      WAIT_HOSTS_TIMEOUT: 60
 
 volumes:
   snoop-stats-es-data: {}
