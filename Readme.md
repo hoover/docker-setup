@@ -28,8 +28,8 @@ These instructions have been tested on Debian Jessie.
     ```bash
     git clone https://github.com/hoover/docker-setup /opt/hoover
     cd /opt/hoover
-    mkdir volumes volumes/metrics volumes/metrics/users volumes/search-es-snapshots collections
-    chmod 777 volumes/search-es-snapshots
+    mkdir -p volumes volumes/metrics volumes/metrics/users volumes/search-es-snapshots volumes/search-es/data collections
+    chmod 777 volumes/search-es-snapshots volumes/search-es/data
     ```
 
 4. Create configuration files:
@@ -50,6 +50,11 @@ These instructions have been tested on Debian Jessie.
         DOCKER_HOOVER_BASE_URL=http://hoover.example.com
         ```
 
+    For local development, add the following to `/etc/hosts` to make the base URLs resolve to localhost:
+
+        127.0.0.1 snoop.hoover.example.com
+        127.0.0.1 hoover.example.com
+
 5. Spin up the docker containers, run migrations, create amdin user:
 
     ```bash
@@ -57,7 +62,7 @@ These instructions have been tested on Debian Jessie.
     docker-compose run --rm snoop ./manage.py resetstatsindex
     docker-compose run --rm search ./manage.py migrate
     docker-compose run --rm search ./manage.py createsuperuser
-    docker-compose run --rm ui node build.js
+    docker-compose run --rm ui npm run build
     docker-compose run --rm search ./manage.py collectstatic --noinput
     docker-compose up -d
     ```

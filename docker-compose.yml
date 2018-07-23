@@ -17,7 +17,7 @@ services:
     image: logicalspark/docker-tikaserver
 
   snoop-stats-es:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.2
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4
     environment:
       discovery.type: single-node
       ES_JAVA_OPTS: '-Xms512m -Xmx512m'
@@ -69,6 +69,9 @@ services:
       - snoop.env
     ports:
       - 45023:80
+    environment:
+      WAIT_HOSTS: search-es:9200, search-pg:5432
+      WAIT_HOSTS_TIMEOUT: 60
 
   search-pg:
     image: postgres:9.6
@@ -79,12 +82,13 @@ services:
       POSTGRES_DATABASE: search
 
   search-es:
-    image: elasticsearch:2
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.4
     volumes:
       - ./volumes/search-es/data:/usr/share/elasticsearch/data
       - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
     environment:
-      ES_JAVA_OPTS: '-Des.path.repo=/opt/hoover/es-snapshots'
+      discovery.type: single-node
+      path.repo: /opt/hoover/es-snapshots
 
   ui:
     image: liquidinvestigations/hoover-ui
@@ -97,6 +101,7 @@ services:
       - ./ui/build:/opt/hoover/ui/build
       - ./volumes/metrics:/opt/hoover/metrics
       - ./search-settings.py:/opt/hoover/search/hoover/site/settings/local.py
+      - ./search-settings-testing.py:/opt/hoover/search/hoover/site/settings/testing_local.py
     depends_on:
       - search-pg
       - search-es
@@ -106,6 +111,9 @@ services:
       - search.env
     ports:
       - 45024:80
+    environment:
+      WAIT_HOSTS: search-es:9200, search-pg:5432
+      WAIT_HOSTS_TIMEOUT: 60
 
 volumes:
   snoop-stats-es-data: {}
