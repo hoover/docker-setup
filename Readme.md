@@ -13,7 +13,8 @@ These instructions have been tested on Debian Jessie.
 2. Install docker:
 
     ```bash
-    apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
+    apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common python3.6 python3-pip
+    pip3 install -r requirements.txt
     curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
     add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
     apt-get update
@@ -58,8 +59,6 @@ These instructions have been tested on Debian Jessie.
 5. Spin up the docker containers, run migrations, create amdin user:
 
     ```bash
-    docker-compose run --rm snoop ./manage.py migrate
-    docker-compose run --rm snoop ./manage.py resetstatsindex
     docker-compose run --rm search ./manage.py migrate
     docker-compose run --rm search ./manage.py createsuperuser
     docker-compose run --rm ui npm run build
@@ -71,12 +70,7 @@ These instructions have been tested on Debian Jessie.
 
     ```bash
     git clone https://github.com/hoover/testdata collections/testdata
-    docker-compose run --rm snoop ./manage.py createcollection testdata /opt/hoover/collections/testdata/data
-
-    # wait for jobs to finish, i.e. when this command stops printing messages:
-    docker-compose logs -f snoop-worker
-
-    docker-compose run --rm search ./manage.py addcollection testdata http://snoop/collections/testdata/json --public
+    python3 ./createcollection.py -c testdata
     ```
 
 
