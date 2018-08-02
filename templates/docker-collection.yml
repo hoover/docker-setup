@@ -7,7 +7,7 @@
       - ./volumes/snoop-pg--{{ collection_name }}/data:/var/lib/postgresql/data
 
   snoop-worker--{{ collection_name }}:
-    image: liquidinvestigations/hoover-snoop2
+    image: {{ snoop_image }}
     volumes:
       - ./gnupg:/opt/hoover/gnupg
       - ./collections:/opt/hoover/collections
@@ -23,7 +23,7 @@
       - snoop-pg--{{ collection_name }}
 
   snoop--{{ collection_name }}:
-    image: liquidinvestigations/hoover-snoop2
+    image: {{ snoop_image }}
     volumes:
       - ./gnupg:/opt/hoover/gnupg
       - ./collections:/opt/hoover/collections

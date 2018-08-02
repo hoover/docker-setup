@@ -1,4 +1,3 @@
-import argparse
 import re
 import yaml
 import os
@@ -23,18 +22,11 @@ def exit_collection_exists(collection):
     print('Collection %s already exists!' % collection)
     exit(1)
 
-def get_args():
-    parser = argparse.ArgumentParser(description='Create a new collection.')
-    parser.add_argument('-c', '--collection', required=True,
-                        help='Collection name; allowed characters: ' + collection_allowed_chars)
-    args = parser.parse_args()
-
-    if re.search('\W+', args.collection):
-        print('Invalid collection name ' + args.collection)
+def validate_collection_name(collection_name):
+    if re.search('\W+', collection_name):
+        print('Invalid collection name ' + collection_name)
         print('Allowed characters: ' + collection_allowed_chars)
         exit(1)
-
-    return args
 
 def get_collections_data(new_collection=None):
     collections = []
@@ -99,5 +91,6 @@ def generate_docker_file(collections):
                 new_docker_file.write(collection_docker_file.read())
             new_docker_file.write('\n\n')
 
-    os.rename(docker_file_name, orig_docker_file_name)
+    if os.path.isfile(docker_file_name):
+        os.rename(docker_file_name, orig_docker_file_name)
     os.rename(new_docker_file_name, docker_file_name)

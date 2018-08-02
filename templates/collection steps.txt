@@ -1,0 +1,19 @@
+Follow the steps below to finish the collection creation:
+
+1. Stop docker-compose
+
+2. Run the following comands:
+  $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py migrate
+  $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py resetstatsindex
+
+3. Start docker-compose
+
+4. Run the following command:
+  $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py createcollection {{ collection_name }} /opt/hoover/collections/{{ collection_name }}/data
+
+5. Wait for collection indexing. When the following command stops printing
+   messages the indexing is done:
+  $ docker-compose logs -f snoop-worker--{{ collection_name }}
+
+6. Add the collection to search:
+  $ docker-compose run --rm search ./manage.py addcollection {{ collection_name }} http://snoop--{{ collection_name }}/collections/{{ collection_name }}/json --public
