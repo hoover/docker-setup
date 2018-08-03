@@ -2,7 +2,7 @@ from urllib.parse import urlparse
 import os
 from .defaultsettings import *
 
-ALLOWED_HOSTS = ['snoop']
+ALLOWED_HOSTS = ['snoop--{{ collection_name }}']
 
 snoop_base_url = os.environ['DOCKER_HOOVER_SNOOP_BASE_URL']
 if snoop_base_url:
@@ -16,7 +16,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'snoop',
         'USER': 'snoop',
-        'HOST': 'snoop-pg',
+        'HOST': 'snoop-pg--{{ collection_name }}',
         'PORT': 5432,
     },
 }

@@ -1,7 +1,7 @@
 /snoop.env
 /search.env
 /nginx.env
-/docker-compose.override.yml
+/docker-compose.override*.yml
 /search
 /snoop
 /ui
@@ -10,3 +10,8 @@
 /snoop-blobs
 /gnupg
 /.idea
+__pycache__
+*.pyc
+collection*.txt
+/settings/*/
+/settings/*-testing.py
