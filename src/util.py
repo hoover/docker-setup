@@ -10,9 +10,9 @@ collection_allowed_chars = 'a-z, A-Z, 0-9, _'
 start_snoop_port = 45025
 settings_dir_name = 'settings'
 templates_dir_name = 'templates'
-docker_file_name = 'docker-compose.yml'
-orig_docker_file_name = 'docker-compose-orig.yml'
-new_docker_file_name = 'docker-compose-new.yml'
+docker_file_name = 'docker-compose.override.yml'
+orig_docker_file_name = 'docker-compose.override-orig.yml'
+new_docker_file_name = 'docker-compose.override-new.yml'
 docker_collection_file_name = 'docker-collection.yml'
 snoop_settings_file_name = 'snoop-settings.py'
 env_file_name = 'snoop.env'
@@ -82,7 +82,7 @@ def generate_docker_file(collections):
             template = Template(docker_file.read())
             snoop_collections = '\n      - '.join(['snoop--' + c for c in collections])
             new_docker_file.write(template.render(snoop_collections=snoop_collections))
-        new_docker_file.write('\n')
+        new_docker_file.write('\n\n')
 
         for collection_name in collections:
             collection_docker_file_path = os.path.join(settings_dir_name, collection_name,

@@ -266,27 +266,39 @@ Exporting:
 docker-compose run --rm -T snoop--<collection_name> ./manage.py exportcollectionindex <collection_name> | gzip -1 > <collection_name>-index.tgz
 ```
 
-2. Stop docker-compose
+2. Run the following command to stop docker-compose:
+```bash
+docker-compose down
+```
 
 3. Copy the directory `volumes/snoop-pg--<collection_name>`
 
 4. Copy the directory `snoop-blobs/<collection_name>`
 
-5. Start docker-compose
+5. Run the following command to start docker-compose:
+```bash
+docker-compose up -d
+```
 
 Importing:
 
 1. Create a new collection <collection_name> (see above)
 
-2. Stop docker-compose
+2. Run the following command to stop docker-compose:
+```bash
+docker-compose down
+```
 
 3. Copy the Postgresql data directory to directory `volumes/snoop-pg--<collection_name>`
 
 4. Copy the blobs to the directory `snoop-blobs/<collection_name>`
 
-5. Start docker-compose
+5. Run the following command to start docker-compose:
+```bash
+docker-compose up -d
+```
 
-6. Import the search index:
+6. Wait about 1 minute for docker to start and then import the search index:
 ```bash
 docker-compose run --rm -T snoop--<collection_name> ./manage.py importcollectionindex <collection_name> < <collection_name>-index.tgz
 ```
