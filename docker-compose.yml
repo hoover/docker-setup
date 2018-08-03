@@ -1,15 +1,9 @@
 version: "2"
 
+volumes:
+  snoop-stats-es-data: {}
+
 services:
-
-  snoop-pg:
-    image: postgres:9.6
-    volumes:
-      - ./volumes/snoop-pg/data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: snoop
-      POSTGRES_DATABASE: snoop
-
   snoop-rabbitmq:
     image: rabbitmq:3.7.3
 
@@ -33,45 +27,6 @@ services:
       ELASTICSEARCH_URL: 'http://snoop-stats-es:9200'
     ports:
       - 45022:5601
-
-  snoop-worker:
-    image: liquidinvestigations/hoover-snoop2
-    volumes:
-      - ./gnupg:/opt/hoover/gnupg
-      - ./collections:/opt/hoover/collections
-      - ./snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
-      - ./snoop-blobs:/opt/hoover/snoop/blobs
-    depends_on:
-      - snoop-pg
-      - snoop-rabbitmq
-      - snoop-tika
-      - snoop-stats-es
-      - search-es
-    env_file:
-      - snoop.env
-    command: ./manage.py runworkers
-
-  snoop:
-    image: liquidinvestigations/hoover-snoop2
-    volumes:
-      - ./gnupg:/opt/hoover/gnupg
-      - ./collections:/opt/hoover/collections
-      - ./snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
-      - ./snoop-blobs:/opt/hoover/snoop/blobs
-      - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
-    depends_on:
-      - snoop-pg
-      - snoop-rabbitmq
-      - snoop-tika
-      - snoop-stats-es
-      - search-es
-    env_file:
-      - snoop.env
-    ports:
-      - 45023:80
-    environment:
-      WAIT_HOSTS: search-es:9200, search-pg:5432
-      WAIT_HOSTS_TIMEOUT: 60
 
   search-pg:
     image: postgres:9.6
@@ -100,20 +55,16 @@ services:
     volumes:
       - ./ui/build:/opt/hoover/ui/build
       - ./volumes/metrics:/opt/hoover/metrics
-      - ./search-settings.py:/opt/hoover/search/hoover/site/settings/local.py
-      - ./search-settings-testing.py:/opt/hoover/search/hoover/site/settings/testing_local.py
+      - ./settings/search-settings.py:/opt/hoover/search/hoover/site/settings/local.py
+      - ./settings/search-settings-testing.py:/opt/hoover/search/hoover/site/settings/testing_local.py
     depends_on:
       - search-pg
       - search-es
       - ui
-      - snoop
     env_file:
-      - search.env
+      - ./settings/search.env
     ports:
       - 45024:80
     environment:
       WAIT_HOSTS: search-es:9200, search-pg:5432
       WAIT_HOSTS_TIMEOUT: 60
-
-volumes:
-  snoop-stats-es-data: {}

@@ -13,7 +13,8 @@ These instructions have been tested on Debian Jessie.
 2. Install docker:
 
     ```bash
-    apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
+    apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common python3.6 python3-pip
+    pip3 install -r requirements.txt
     curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
     add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
     apt-get update
@@ -58,8 +59,6 @@ These instructions have been tested on Debian Jessie.
 5. Spin up the docker containers, run migrations, create amdin user:
 
     ```bash
-    docker-compose run --rm snoop ./manage.py migrate
-    docker-compose run --rm snoop ./manage.py resetstatsindex
     docker-compose run --rm search ./manage.py migrate
     docker-compose run --rm search ./manage.py createsuperuser
     docker-compose run --rm ui npm run build
@@ -71,14 +70,8 @@ These instructions have been tested on Debian Jessie.
 
     ```bash
     git clone https://github.com/hoover/testdata collections/testdata
-    docker-compose run --rm snoop ./manage.py createcollection testdata /opt/hoover/collections/testdata/data
-
-    # wait for jobs to finish, i.e. when this command stops printing messages:
-    docker-compose logs -f snoop-worker
-
-    docker-compose run --rm search ./manage.py addcollection testdata http://snoop/collections/testdata/json --public
+    python3 ./createcollection.py -c testdata
     ```
-
 
 ### Configuring two-factor authentication
 Since hoover-search has built-in support for TOTP two-factor authentication,
@@ -224,9 +217,27 @@ docker-compose run --rm snoop pytest testsuite/test_tika.py
 
 
 ### Creating a collection
-To create a collection, copy the original files in a folder inside the
-`collections` folder. Then run the `createcollection` command for snoop, and
-the `addcollection` command for search. It will set up a new collection in the
+To create a collection, copy the original files in the following folder:
+`collections/<collection_name>/data`
+
+Then run the following command:
+```bash
+python3 ./createcollection.py -c <collection_name>
+```
+
+The script will ask you to run additional commands if it ran succesfully:
+```bash
+# run migrations
+docker-compose run --rm snoop--<collection_name> ./manage.py migrate
+# reset stats index
+docker-compose run --rm snoop--<collection_name> ./manage.py resetstatsindex
+# create collection inside the snoop docker image
+docker-compose run --rm snoop--<collection_name> ./manage.py createcollection <collection_name> /opt/hoover/collections/<collection_name>/data
+# add collection to search
+docker-compose run --rm search ./manage.py addcollection <collection_name> http://snoop--<collection_name>/collections/<collection_name>/json --public
+```
+
+The `createcollection` docker command for snoop will set up a new collection in the
 snoop SQL database, create an elasticsearch index, and it will trigger "walk"
 tasks to analyze the collection's contents. As the files get processed they
 will show up in the search results.
@@ -250,27 +261,51 @@ rename the index on import.
 
 Exporting:
 
-```shell
-docker-compose run --rm -T snoop ./manage.py exportcollectiondb testdata | gzip -1 > testdata-db.tgz
-docker-compose run --rm -T snoop ./manage.py exportcollectionindex testdata | gzip -1 > testdata-index.tgz
-docker-compose run --rm -T snoop ./manage.py exportcollectionblobs testdata | gzip -1 > testdata-blobs.tgz
+1. Export the search index:
+```bash
+docker-compose run --rm -T snoop--<collection_name> ./manage.py exportcollectionindex <collection_name> | gzip -1 > <collection_name>-index.tgz
+```
+
+2. Run the following command to stop docker-compose:
+```bash
+docker-compose down
+```
+
+3. Copy the directory `volumes/snoop-pg--<collection_name>`
+
+4. Copy the directory `snoop-blobs/<collection_name>`
+
+5. Run the following command to start docker-compose:
+```bash
+docker-compose up -d
 ```
 
 Importing:
 
-```shell
-docker-compose run --rm -T snoop ./manage.py importcollectiondb testdata < testdata-db.tgz
-docker-compose run --rm -T snoop ./manage.py importcollectionindex testdata < testdata-index.tgz
-docker-compose run --rm -T snoop ./manage.py importblobs < testdata-blobs.tgz
+1. Create a new collection <collection_name> (see above)
+
+2. Run the following command to stop docker-compose:
+```bash
+docker-compose down
 ```
 
-Note that the `importblobs` command doesn't expect a collection as argument;
-the blobs have no connection to any particular collection.
+3. Copy the Postgresql data directory to directory `volumes/snoop-pg--<collection_name>`
 
+4. Copy the blobs to the directory `snoop-blobs/<collection_name>`
+
+5. Run the following command to start docker-compose:
+```bash
+docker-compose up -d
+```
+
+6. Wait about 1 minute for docker to start and then import the search index:
+```bash
+docker-compose run --rm -T snoop--<collection_name> ./manage.py importcollectionindex <collection_name> < <collection_name>-index.tgz
+```
 
 ### Deleting a collection
 ```shell
-docker-compose run --rm snoop ./manage.py deletecollection testdata
+python3 ./removecollection.py -c <collection_name>
 ```
 
 This will delete the collection and associated files and directories, the

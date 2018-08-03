@@ -1,0 +1,45 @@
+  snoop-pg--{{ collection_name }}:
+    image: postgres:9.6
+    environment:
+      POSTGRES_USER: snoop
+      POSTGRES_DATABASE: snoop
+    volumes:
+      - ./volumes/snoop-pg--{{ collection_name }}/data:/var/lib/postgresql/data
+
+  snoop-worker--{{ collection_name }}:
+    image: {{ snoop_image }}
+    volumes:
+      - ./gnupg:/opt/hoover/gnupg
+      - ./collections:/opt/hoover/collections
+      - ./settings/{{ collection_name }}/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs/{{ collection_name }}:/opt/hoover/snoop/blobs
+    env_file:
+      - ./settings/{{ collection_name }}/snoop.env
+    depends_on:
+      - snoop-rabbitmq
+      - snoop-tika
+      - snoop-stats-es
+      - search-es
+      - snoop-pg--{{ collection_name }}
+
+  snoop--{{ collection_name }}:
+    image: {{ snoop_image }}
+    volumes:
+      - ./gnupg:/opt/hoover/gnupg
+      - ./collections:/opt/hoover/collections
+      - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
+      - ./settings/{{ collection_name }}/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs/{{ collection_name }}:/opt/hoover/snoop/blobs
+    ports:
+      - {{ snoop_port }}:80
+    env_file:
+      - ./settings/{{ collection_name }}/snoop.env
+    environment:
+      WAIT_HOSTS: search-es:9200, snoop-pg--{{ collection_name }}:5432
+      WAIT_HOSTS_TIMEOUT: 60
+    depends_on:
+      - snoop-rabbitmq
+      - snoop-tika
+      - snoop-stats-es
+      - search-es
+      - snoop-pg--{{ collection_name }}
