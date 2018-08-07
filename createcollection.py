@@ -9,8 +9,8 @@ from src.util import get_collections_data, \
     generate_docker_file, templates_dir_name, collection_allowed_chars, \
     validate_collection_name, \
     validate_collection_data_dir, create_settings_dir, \
-    generate_collection_docker_file
-
+    generate_collection_docker_file, regenerate_collections_docker_files, \
+    volumes_dir_name
 
 steps_file_name = 'collection%s steps.txt'
 
@@ -23,6 +23,7 @@ def generate_env_file(settings_dir):
     with open(os.path.join(settings_dir, env_file_name), mode='w') as env_file:
         env_file.write(env_settings)
 
+
 def generate_python_settings_file(settings_dir):
     with open(os.path.join(templates_dir_name, snoop_settings_file_name)) as settings_template:
         template = Template(settings_template.read())
@@ -30,6 +31,7 @@ def generate_python_settings_file(settings_dir):
 
     with open(os.path.join(settings_dir, snoop_settings_file_name), mode='w') as settings_file:
         settings_file.write(snoop_settings)
+
 
 def write_instructions(args):
     with open(os.path.join(templates_dir_name, steps_file_name % '')) as steps_template:
@@ -42,6 +44,7 @@ def write_instructions(args):
 
     print(open(collection_steps_file_name).read())
     print('\nThe steps above are described in "%s"' % collection_steps_file_name)
+
 
 def get_args():
     parser = argparse.ArgumentParser(description='Create a new collection.')
@@ -58,23 +61,33 @@ def get_args():
     return args
 
 
+def create_pg_dir(collection):
+    pg_dir = os.path.join(volumes_dir_name, 'snoop-pg--%s' % collection)
+    if not os.path.isdir(pg_dir):
+        os.mkdir(pg_dir)
+
+
 if __name__ == '__main__':
     args = get_args()
 
-    collections, snoop_port, pg_port = get_collections_data(args.collection, args.dev)
+    collections, snoop_port, _ = get_collections_data(args.collection)
     if len(collections):
         validate_collections(collections)
     validate_collection_data_dir(args.collection)
     settings_dir = create_settings_dir(args.collection)
 
-    collections.append(args.collection)
-    collections.sort()
     try:
+        pg_port = regenerate_collections_docker_files(collections, args.snoop_image, args.dev)
+
+        collections.append(args.collection)
+        collections.sort()
+
         generate_collection_docker_file(args.collection, args.snoop_image, settings_dir,
                                         snoop_port, args.dev, pg_port)
         generate_env_file(settings_dir)
         generate_python_settings_file(settings_dir)
         generate_docker_file(collections, args.dev)
+        create_pg_dir(args.collection)
     except Exception as e:
         print('Error creating collection: %s' % e)
         cleanup(args.collection)

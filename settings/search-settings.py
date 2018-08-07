@@ -1,6 +1,6 @@
-from urllib.parse import urlparse
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 base_dir = Path(__file__).absolute().parent.parent.parent.parent
 
@@ -36,8 +36,8 @@ if bool(os.environ.get('DOCKER_HOOVER_TWOFACTOR_ENABLED')):
         HOOVER_TWOFACTOR_AUTOLOGOUT = \
             int(os.environ['DOCKER_HOOVER_TWOFACTOR_AUTOLOGOUT'])
 
-    HOOVER_RATELIMIT_USER = (30, 60) # 30 per minute
-    HOOVER_TWOFACTOR_RATELIMIT = (3, 60) # 3 per minute
+    HOOVER_RATELIMIT_USER = (30, 60)  # 30 per minute
+    HOOVER_TWOFACTOR_RATELIMIT = (3, 60)  # 3 per minute
 
 DATABASES = {
     'default': {
