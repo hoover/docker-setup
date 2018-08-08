@@ -1,5 +1,6 @@
-from urllib.parse import urlparse
 import os
+from urllib.parse import urlparse
+
 from .defaultsettings import *
 
 ALLOWED_HOSTS = ['snoop--{{ collection_name }}']

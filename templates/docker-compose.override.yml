@@ -1,6 +1,1 @@
-version: "2"
-
-services:
   search:
-    depends_on:
-      - {{ snoop_collections }}

@@ -1,0 +1,23 @@
+  snoop-rabbitmq:
+    ports:
+      - "5672:5672"
+
+  snoop-tika:
+    ports:
+      - "9998:9998"
+
+  search-pg:
+    ports:
+      - "5432:5432"
+
+  search-es:
+    ports:
+      - "9200:9200"
+
+  ui:
+    volumes:
+      - ../ui:/opt/hoover/ui:cached
+
+  search:
+    volumes:
+      - ../search:/opt/hoover/search:cached
