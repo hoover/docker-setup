@@ -26,7 +26,7 @@ services:
     environment:
       ELASTICSEARCH_URL: 'http://snoop-stats-es:9200'
     ports:
-      - 45022:5601
+      - "45022:5601"
 
   search-pg:
     image: postgres:9.6
@@ -64,7 +64,7 @@ services:
     env_file:
       - ./settings/search.env
     ports:
-      - 45024:80
+      - "45024:80"
     environment:
       WAIT_HOSTS: search-es:9200, search-pg:5432
       WAIT_HOSTS_TIMEOUT: 60
