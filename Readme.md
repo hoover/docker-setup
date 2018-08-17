@@ -20,7 +20,7 @@ These instructions have been tested on Debian Jessie.
     apt-get update
     apt-get install -y docker-ce
     service docker start
-    curl -L https://github.com/docker/compose/releases/download/1.13.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+    curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
     ```
 
@@ -105,7 +105,7 @@ Hoover:
   like):
 
     ```
-    docker-compose run --rm snoop ./manage.py createocrsource myocr /opt/hoover/collections/testdata/ocr/myocr
+    docker-compose run --rm snoop--testdata ./manage.py createocrsource myocr /opt/hoover/collections/testdata/ocr/myocr
     # wait for jobs to finish
     ```
 
@@ -235,6 +235,8 @@ docker-compose run --rm snoop--<collection_name> ./manage.py resetstatsindex
 docker-compose run --rm snoop--<collection_name> ./manage.py createcollection <collection_name> /opt/hoover/collections/<collection_name>/data
 # add collection to search
 docker-compose run --rm search ./manage.py addcollection <collection_name> http://snoop--<collection_name>/collections/<collection_name>/json --public
+# add ocr source
+docker-compose run --rm snoop--<collection_name> ./manage.py createocrsource ocr-name /opt/hoover/collections/<collection_name>/ocr-data
 ```
 
 The `createcollection` docker command for snoop will set up a new collection in the

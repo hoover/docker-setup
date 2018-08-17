@@ -12,6 +12,6 @@
 /.idea
 __pycache__
 *.pyc
-collection*.txt
+/collection*.txt
 /settings/*/
 /settings/*-testing.py
