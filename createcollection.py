@@ -36,7 +36,8 @@ def generate_python_settings_file(settings_dir):
 def write_instructions(args):
     with open(os.path.join(templates_dir_name, steps_file_name % '')) as steps_template:
         template = Template(steps_template.read())
-        steps = template.render(collection_name=args.collection)
+        steps = template.render(collection_name=args.collection,
+                                collection_index=str.lower(args.collection))
 
     collection_steps_file_name = steps_file_name % ' %s' % args.collection
     with open(collection_steps_file_name, mode='w') as steps_file:
