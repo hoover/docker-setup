@@ -57,7 +57,7 @@ def get_collections_data(new_collection=None):
                 collection_name = service[len('snoop--'):]
                 collections.append(collection_name)
 
-                if new_collection and collection_name == new_collection:
+                if new_collection and collection_name.lower() == new_collection.lower():
                     exit_collection_exists(new_collection)
                 port = int(settings['ports'][0].split(sep=':')[0])
                 if port > last_snoop_port:
