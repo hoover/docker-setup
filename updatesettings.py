@@ -26,7 +26,7 @@ if __name__ == '__main__':
     collections.sort()
 
     try:
-        regenerate_settings_files(collections, args.profiling)
+        regenerate_settings_files(collections, args.profiling, args.dev)
         regenerate_collections_docker_files(collections, args.snoop_image, args.profiling, args.dev)
         generate_docker_file(collections, args.dev)
     except Exception as e:
