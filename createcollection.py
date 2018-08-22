@@ -46,7 +46,7 @@ def get_args():
                         help='Snoop docker image')
     parser.add_argument('-d', '--dev', action='store_const', const=True, default=False,
                         help='Add development settings to the docker file')
-    parser.add_argument('-p', '--profiling', action='append', nargs='*', default=[],
+    parser.add_argument('-p', '--profiling', action='append', nargs='*',
                         help='Add profiling settings for the given collections. ' +
                              'If no collections were specified profiling will be enabled for all.')
     args = parser.parse_args()
@@ -82,7 +82,7 @@ if __name__ == '__main__':
         generate_collection_docker_file(args.collection, args.snoop_image, settings_dir,
                                         snoop_port, profiling, args.dev, pg_port)
         generate_env_file(settings_dir)
-        generate_python_settings_file(args.collection, settings_dir, profiling)
+        generate_python_settings_file(args.collection, settings_dir, profiling, args.dev)
         generate_docker_file(collections, args.dev)
         create_pg_dir(args.collection)
     except Exception as e:
