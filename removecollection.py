@@ -45,7 +45,7 @@ if __name__ == '__main__':
         print('Invalid collection %s' % args.collection)
         exit(1)
 
-    validate_collections(collections)
+    validate_collections(collections, exit_on_errors=False)
 
     if not args.skip_index:
         remove_index(args.collection)

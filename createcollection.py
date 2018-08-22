@@ -5,12 +5,12 @@ import os.path
 from jinja2 import Template
 
 from src.util import get_collections_data, \
-    validate_collections, env_file_name, snoop_settings_file_name, cleanup, \
+    validate_collections, env_file_name, cleanup, \
     generate_docker_file, templates_dir_name, collection_allowed_chars, \
     validate_collection_name, \
     validate_collection_data_dir, create_settings_dir, \
     generate_collection_docker_file, regenerate_collections_docker_files, \
-    volumes_dir_name
+    volumes_dir_name, generate_python_settings_file, collection_selected
 
 steps_file_name = 'collection%s steps.txt'
 
@@ -22,15 +22,6 @@ def generate_env_file(settings_dir):
 
     with open(os.path.join(settings_dir, env_file_name), mode='w') as env_file:
         env_file.write(env_settings)
-
-
-def generate_python_settings_file(settings_dir):
-    with open(os.path.join(templates_dir_name, snoop_settings_file_name)) as settings_template:
-        template = Template(settings_template.read())
-        snoop_settings = template.render(collection_name=args.collection)
-
-    with open(os.path.join(settings_dir, snoop_settings_file_name), mode='w') as settings_file:
-        settings_file.write(snoop_settings)
 
 
 def write_instructions(args):
@@ -48,13 +39,16 @@ def write_instructions(args):
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description='Create a new collection.')
+    parser = argparse.ArgumentParser(description='Create or update a collection.')
     parser.add_argument('-c', '--collection', required=True,
                         help='Collection name; allowed characters: ' + collection_allowed_chars)
     parser.add_argument('-s', '--snoop-image', default='liquidinvestigations/hoover-snoop2',
                         help='Snoop docker image')
     parser.add_argument('-d', '--dev', action='store_const', const=True, default=False,
                         help='Add development settings to the docker file')
+    parser.add_argument('-p', '--profiling', action='append', nargs='*', default=[],
+                        help='Add profiling settings for the given collections. ' +
+                             'If no collections were specified profiling will be enabled for all.')
     args = parser.parse_args()
 
     validate_collection_name(args.collection)
@@ -83,10 +77,12 @@ if __name__ == '__main__':
         collections.append(args.collection)
         collections.sort()
 
+        profiling = collection_selected(args.collection, args.profiling)
+
         generate_collection_docker_file(args.collection, args.snoop_image, settings_dir,
-                                        snoop_port, args.dev, pg_port)
+                                        snoop_port, profiling, args.dev, pg_port)
         generate_env_file(settings_dir)
-        generate_python_settings_file(settings_dir)
+        generate_python_settings_file(args.collection, settings_dir, profiling)
         generate_docker_file(collections, args.dev)
         create_pg_dir(args.collection)
     except Exception as e:
