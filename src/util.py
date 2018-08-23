@@ -112,12 +112,13 @@ def collection_selected(collection, collections):
                   collections, False)
 
 
-def cleanup(collection_name, keep_new_docker_file=False):
+def cleanup(collection_name):
     settings_dir = os.path.join(settings_dir_name, collection_name)
     if os.path.isdir(settings_dir):
         rmtree(settings_dir, ignore_errors=True)
-    if not keep_new_docker_file and os.path.isfile(orig_docker_file_name):
-        os.rename(orig_docker_file_name, docker_file_name)
+    pg_dir = os.path.join(volumes_dir_name, 'snoop-pg--%s' % collection_name)
+    if os.path.isdir(pg_dir):
+        rmtree(pg_dir, ignore_errors=True)
 
 
 def create_settings_dir(collection, ignore_exists=False):

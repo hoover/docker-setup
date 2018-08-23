@@ -52,7 +52,7 @@ if __name__ == '__main__':
     collections.remove(args.collection)
     generate_docker_file(collections, for_dev)
 
-    cleanup(args.collection, keep_new_docker_file=True)
+    cleanup(args.collection)
     remove_pg_dir(args.collection)
 
     print('Restart docker-compose:')
