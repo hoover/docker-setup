@@ -69,10 +69,12 @@ if __name__ == '__main__':
     if len(collections):
         validate_collections(collections)
     validate_collection_data_dir(args.collection)
-    settings_dir = create_settings_dir(args.collection)
 
     try:
-        pg_port = regenerate_collections_docker_files(collections, args.snoop_image, args.dev)
+        create_pg_dir(args.collection)
+        settings_dir = create_settings_dir(args.collection)
+        pg_port = regenerate_collections_docker_files(collections, args.snoop_image, args.profiling,
+                                                      args.dev)
 
         collections.append(args.collection)
         collections.sort()
@@ -84,7 +86,6 @@ if __name__ == '__main__':
         generate_env_file(settings_dir)
         generate_python_settings_file(args.collection, settings_dir, profiling, args.dev)
         generate_docker_file(collections, args.dev)
-        create_pg_dir(args.collection)
     except Exception as e:
         print('Error creating collection: %s' % e)
         cleanup(args.collection)
