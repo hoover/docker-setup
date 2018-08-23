@@ -88,6 +88,6 @@ if __name__ == '__main__':
     except Exception as e:
         print('Error creating collection: %s' % e)
         cleanup(args.collection)
-        exit(1)
+        raise
 
     write_instructions(args)
