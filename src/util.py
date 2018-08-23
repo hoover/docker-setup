@@ -136,12 +136,13 @@ def create_settings_dir(collection, ignore_exists=False):
     return settings_dir
 
 
-def generate_python_settings_file(collection, settings_dir, profiling=False):
+def generate_python_settings_file(collection, settings_dir, profiling=False, for_dev=False):
     '''Generate the corresponding collection python settings file.
 
     :param collection: the collection name
     :param settings_dir: the directory containing the settings files
     :param profiling: if true, will add profiling settings
+    :param for_dev: if true, will add development settings
     '''
     with open(os.path.join(templates_dir_name, snoop_settings_file_name)) as settings_template:
         template = Template(settings_template.read())
@@ -150,21 +151,27 @@ def generate_python_settings_file(collection, settings_dir, profiling=False):
         with open(os.path.join(templates_dir_name, snoop_settings_profiling_file_name)) as \
                 profiling_template:
             snoop_settings += Template(profiling_template.read()).render()
+    if for_dev:
+        with open(os.path.join(templates_dir_name, snoop_settings_dev_file_name)) as \
+                dev_template:
+            snoop_settings += Template(dev_template.read()).render()
 
     with open(os.path.join(settings_dir, snoop_settings_file_name), mode='w') as settings_file:
         settings_file.write(snoop_settings)
 
 
-def regenerate_settings_files(collections, profiling_collections=None):
+def regenerate_settings_files(collections, profiling_collections=None, for_dev=False):
     '''Re-generate the collections settings files.
 
     :param collections: the collections name list
     :param profiling_collections: the collections selected for profiling
+    :param for_dev: if true, will add development settings
     '''
     for collection in collections:
         settings_dir = create_settings_dir(collection, ignore_exists=True)
+        selected = collection_selected(collection, profiling_collections)
         generate_python_settings_file(collection, settings_dir,
-                                      profiling=collection_selected(collection, profiling_collections))
+                                      profiling=selected, for_dev=for_dev)
 
 
 def generate_collection_docker_file(collection, snoop_image, settings_dir, snoop_port,
@@ -182,7 +189,10 @@ def generate_collection_docker_file(collection, snoop_image, settings_dir, snoop
     pg_port = pg_port if pg_port else default_pg_port + 1
     dev_ports = '    ports:\n      - "%d:%d"\n' % (pg_port, default_pg_port) if for_dev else ''
     snoop_port = snoop_port if snoop_port else start_snoop_port
-    profiling_volumes = '\n      - ./profiles:/opt/hoover/snoop/profiles' if profiling else ''
+    profiling_volumes = ''
+    if profiling:
+        profiling_volumes = '\n      - ./profiles:/opt/hoover/snoop/profiles' + \
+                            '\n      - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py'
 
     with open(os.path.join(templates_dir_name, docker_collection_file_name)) as docker_template:
         template = Template(docker_template.read())
