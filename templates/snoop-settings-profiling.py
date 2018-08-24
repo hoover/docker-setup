@@ -1,0 +1,21 @@
+
+INSTALLED_APPS.append('silk')
+
+MIDDLEWARE.append('silk.middleware.SilkyMiddleware')
+
+SILKY_PYTHON_PROFILER = True
+
+SILKY_PYTHON_PROFILER_BINARY = True
+
+SILKY_MAX_RESPONSE_BODY_SIZE = 1024
+
+SILKY_META = True
+
+SILKY_PYTHON_PROFILER_RESULT_PATH = '/opt/hoover/snoop/profiles'
+
+PROFILES_DIR = 'profiles'
+
+PROFILING_ENABLED = True
+
+DEFAULT_PROFILING_FILE = 'workers.prof'
+
