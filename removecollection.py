@@ -6,7 +6,7 @@ import sys
 
 from src.util import get_collections_data, validate_collections, cleanup, \
     generate_docker_file, collection_allowed_chars, validate_collection_name, \
-    volumes_dir_name
+    volumes_dir_name, blobs_dir_name
 
 
 def get_args():
@@ -15,6 +15,10 @@ def get_args():
                         help='Collection name; allowed characters: ' + collection_allowed_chars)
     parser.add_argument('--skip-index', action='store_const', const=True,
                         help='Skip the index removal from search.')
+    parser.add_argument('-b', '--remove-blobs', action='store_const', const=True, default=False,
+                        help='Remove blobs')
+    parser.add_argument('-y', '--yes', action='store_const', const=True, default=False,
+                        help='Force yes answer to all interactive user inputs.')
     args = parser.parse_args()
 
     validate_collection_name(args.collection)
@@ -38,6 +42,21 @@ def remove_index(collection_name):
         exit(1)
 
 
+def remove_blobs(collection_name, force_yes=False):
+    blobs_dir = os.path.join(blobs_dir_name, collection_name)
+    if os.path.isdir(blobs_dir):
+        if not force_yes:
+            while True:
+                option = input('Please confirm the deletion of blobs (yes/no): ')
+                if option.lower() not in ['yes', 'no']:
+                    print('Invalid option "%s"' % option)
+                    continue
+                break
+            if option.lower() == 'no':
+                return
+        rmtree(blobs_dir)
+
+
 if __name__ == '__main__':
     args = get_args()
     collections, _, for_dev = get_collections_data()
@@ -54,6 +73,8 @@ if __name__ == '__main__':
 
     cleanup(args.collection)
     remove_pg_dir(args.collection)
+    if args.remove_blobs:
+        remove_blobs(args.collection, args.yes)
 
     print('Restart docker-compose:')
     print('  $ docker-compose down')
