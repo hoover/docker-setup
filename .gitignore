@@ -15,4 +15,5 @@ __pycache__
 /collection*.txt
 /settings/*/
 /settings/*-testing.py
+/.python-version
 /profiles
