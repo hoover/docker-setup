@@ -16,3 +16,4 @@ __pycache__
 /settings/*/
 /settings/*-testing.py
 /profiles
+/templates/docker-custom-*.yml
