@@ -18,6 +18,7 @@ docker_dev_file_name = 'docker-compose.override-dev.yml'
 orig_docker_file_name = 'docker-compose.override-orig.yml'
 new_docker_file_name = 'docker-compose.override-new.yml'
 docker_collection_file_name = 'docker-collection.yml'
+custom_services_file_name = 'docker-custom-services.yml'
 snoop_settings_file_name = 'snoop-settings.py'
 snoop_settings_profiling_file_name = 'snoop-settings-profiling.py'
 snoop_settings_dev_file_name = 'snoop-settings-dev.py'
@@ -266,6 +267,11 @@ def generate_docker_file(collections, for_dev=False):
     with open(new_docker_file_name, 'w') as new_docker_file:
         with open(os.path.join(templates_dir_name, template_file)) as docker_file:
             new_docker_file.write('version: "2"\n\nservices:\n')
+            custom_services_file_path = os.path.join(templates_dir_name, custom_services_file_name)
+            if os.path.isfile(custom_services_file_path):
+                with open(custom_services_file_path) as custom_services_file:
+                    new_docker_file.write(custom_services_file.read())
+                new_docker_file.write('\n')
             new_docker_file.write(docker_file.read())
             new_docker_file.write('    depends_on:\n      - ')
             snoop_collections = '\n      - '.join(['snoop--' + c for c in collections])
