@@ -5,7 +5,7 @@ from subprocess import run
 import sys
 
 from src.util import get_collections_data, validate_collections, cleanup, \
-    generate_docker_file, collection_allowed_chars, validate_collection_name, \
+    write_global_docker_file, collection_allowed_chars, validate_collection_name, \
     volumes_dir_name, blobs_dir_name
 
 
@@ -59,17 +59,19 @@ def remove_blobs(collection_name, force_yes=False):
 
 if __name__ == '__main__':
     args = get_args()
-    collections, _, for_dev = get_collections_data()
+    collections, _, _, for_dev = get_collections_data()
     if args.collection not in collections:
         print('Invalid collection %s' % args.collection)
         exit(1)
 
     validate_collections(collections, exit_on_errors=False)
+    if for_dev == 1 and collections[args.collection]['for_dev']:
+        for_dev = False
 
     if not args.skip_index:
         remove_index(args.collection)
-    collections.remove(args.collection)
-    generate_docker_file(collections, for_dev)
+    del collections[args.collection]
+    write_global_docker_file(collections, for_dev)
 
     cleanup(args.collection)
     remove_pg_dir(args.collection)

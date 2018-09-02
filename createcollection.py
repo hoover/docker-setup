@@ -1,16 +1,14 @@
 import argparse
 from base64 import b64encode
+from collections import OrderedDict
 import os.path
 
 from jinja2 import Template
 
-from src.util import get_collections_data, \
-    validate_collections, env_file_name, cleanup, \
-    generate_docker_file, templates_dir_name, collection_allowed_chars, \
-    validate_collection_name, \
-    validate_collection_data_dir, create_settings_dir, \
-    generate_collection_docker_file, regenerate_collections_docker_files, \
-    volumes_dir_name, generate_python_settings_file, collection_selected
+from src.util import get_collections_data, validate_collections, env_file_name, cleanup, \
+    write_global_docker_file, templates_dir_name, collection_allowed_chars, \
+    validate_collection_name, validate_collection_data_dir, create_settings_dir, \
+    write_collection_docker_file, volumes_dir_name, write_python_settings_file
 
 steps_file_name = 'collection%s steps.txt'
 
@@ -39,16 +37,15 @@ def write_instructions(args):
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description='Create or update a collection.')
+    parser = argparse.ArgumentParser(description='Create a collection.')
     parser.add_argument('-c', '--collection', required=True,
                         help='Collection name; allowed characters: ' + collection_allowed_chars)
     parser.add_argument('-s', '--snoop-image', default='liquidinvestigations/hoover-snoop2',
                         help='Snoop docker image')
     parser.add_argument('-d', '--dev', action='store_const', const=True, default=False,
                         help='Add development settings to the docker file')
-    parser.add_argument('-p', '--profiling', action='append', nargs='*',
-                        help='Add profiling settings for the given collections. ' +
-                             'If no collections were specified profiling will be enabled for all.')
+    parser.add_argument('-p', '--profiling', action='store_const', const=True, default=False,
+                        help='Add profiling settings for the new collection.')
     args = parser.parse_args()
 
     validate_collection_name(args.collection)
@@ -65,7 +62,7 @@ def create_pg_dir(collection):
 if __name__ == '__main__':
     args = get_args()
 
-    collections, snoop_port, _ = get_collections_data(args.collection)
+    collections, snoop_port, pg_port, for_dev = get_collections_data(args.collection)
     if len(collections):
         validate_collections(collections)
     validate_collection_data_dir(args.collection)
@@ -73,19 +70,15 @@ if __name__ == '__main__':
     try:
         create_pg_dir(args.collection)
         settings_dir = create_settings_dir(args.collection)
-        pg_port = regenerate_collections_docker_files(collections, args.snoop_image, args.profiling,
-                                                      args.dev)
 
-        collections.append(args.collection)
-        collections.sort()
+        collections[args.collection] = {'profiling': args.profiling, 'for_dev': args.dev}
+        ordered_collections = OrderedDict(sorted(collections.items(), key=lambda t: t[0]))
 
-        profiling = collection_selected(args.collection, args.profiling)
-
-        generate_collection_docker_file(args.collection, args.snoop_image, settings_dir,
-                                        snoop_port, profiling, args.dev, pg_port)
+        write_collection_docker_file(args.collection, args.snoop_image, settings_dir,
+                                     snoop_port, args.profiling, args.dev, pg_port)
         generate_env_file(settings_dir)
-        generate_python_settings_file(args.collection, settings_dir, profiling, args.dev)
-        generate_docker_file(collections, args.dev)
+        write_python_settings_file(args.collection, settings_dir, args.profiling, args.dev)
+        write_global_docker_file(ordered_collections, args.dev or for_dev)
     except Exception as e:
         print('Error creating collection: %s' % e)
         cleanup(args.collection)
