@@ -201,7 +201,7 @@ git clone https://github.com/hoover/ui
 When creating collections or updating settings use the `-d` option. E.g.:
 ```shell
 python3 ./createcollection.py -c <collection_name> -d
-python3 ./updatesettings.py -c <collection_name> -d
+python3 ./updatesettings.py -d <collection_names_list>
 ```
 
 It will generate the following code in the docker-compose.override.yml:
@@ -233,6 +233,9 @@ It will generate the following code in the docker-compose.override.yml:
 
 For each collection it will add the following setting:
 ```yaml
+  snoop-pg--testdata:
+    ports:
+      - "5433:5432"
   snoop-worker--testdata:
     volumes:
       - ../snoop2:/opt/hoover/snoop:cached
