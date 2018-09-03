@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from functools import reduce
 import os
 import re
@@ -50,23 +51,37 @@ def validate_collection_data_dir(collection_name):
         exit(1)
 
 
+def has_volume(settings, volume_local):
+    if 'volumes' not in settings:
+        return False
+    for volume in settings['volumes']:
+        if volume_local == volume.split(sep=':')[0]:
+            return True
+    return False
+
+
 def get_collections_data(new_collection=None):
     if not os.path.isfile(docker_file_name):
-        return [], start_snoop_port, False
+        return {}, start_snoop_port, default_pg_port + 1, False
 
-    collections = []
+    collections = {}
     last_snoop_port = start_snoop_port - 1
-    for_dev = False
+    pg_port = default_pg_port + 1
+    dev_instances = 0
     exists = False
 
     with open(docker_file_name) as collections_file:
         collections_settings = yaml.load(collections_file)
         for service, settings in collections_settings['services'].items():
-            if service in ['snoop-rabbitmq', 'snoop-tika', 'search-pg', 'search-es']:
-                for_dev = True
             if service.startswith('snoop--'):
                 collection_name = service[len('snoop--'):]
-                collections.append(collection_name)
+                collections[collection_name] = {
+                    'profiling': has_volume(settings, './profiles') and
+                    has_volume(settings, './settings/urls.py'),
+                    'for_dev': has_volume(settings, '../snoop2')}
+                if collections[collection_name]['for_dev']:
+                    dev_instances += 1
+                    pg_port += 1
 
                 if new_collection and collection_name.lower() == new_collection.lower():
                     exit_collection_exists(new_collection)
@@ -76,7 +91,9 @@ def get_collections_data(new_collection=None):
                 if port > last_snoop_port:
                     last_snoop_port = port
 
-    return collections, last_snoop_port + 1, for_dev
+    ordered_collections = OrderedDict(sorted(collections.items(), key=lambda t: t[0]))
+
+    return ordered_collections, last_snoop_port + 1, pg_port, dev_instances
 
 
 def validate_collections(collections, exit_on_errors=True):
@@ -106,8 +123,6 @@ def validate_collections(collections, exit_on_errors=True):
 def collection_selected(collection, collections):
     if collections is None:
         return False
-    if len(collections):
-        collections = collections[0]
     if len(collections) == 0:
         return True
     return reduce(lambda found, elem: found or collection.lower() == elem.lower(),
@@ -139,7 +154,7 @@ def create_settings_dir(collection, ignore_exists=False):
     return settings_dir
 
 
-def generate_python_settings_file(collection, settings_dir, profiling=False, for_dev=False):
+def write_python_settings_file(collection, settings_dir, profiling=False, for_dev=False):
     '''Generate the corresponding collection python settings file.
 
     :param collection: the collection name
@@ -163,22 +178,33 @@ def generate_python_settings_file(collection, settings_dir, profiling=False, for
         settings_file.write(snoop_settings)
 
 
-def regenerate_settings_files(collections, profiling_collections=None, for_dev=False):
-    '''Re-generate the collections settings files.
+def write_python_settings_files(collections, profiling_collections=None, remove_profiling=False,
+                                dev_collections=None, remove_dev=False):
+    '''Generate the collections settings files.
 
     :param collections: the collections name list
-    :param profiling_collections: the collections selected for profiling
-    :param for_dev: if true, will add development settings
+    :param profiling_collections: the collections selected for profiling/no profiling
+    :param remove_profiling: if true, remove profiling from collections in profiling_collections
+    :param dev_collections: collections selected for dev/no dev
+    :param remove_dev: if true, remove dev from collections in dev_collections
     '''
-    for collection in collections:
+    for collection, settings in collections.items():
         settings_dir = create_settings_dir(collection, ignore_exists=True)
-        selected = collection_selected(collection, profiling_collections)
-        generate_python_settings_file(collection, settings_dir,
-                                      profiling=selected, for_dev=for_dev)
+        if remove_profiling:
+            profiling = not collection_selected(collection, profiling_collections) and settings['profiling']
+        else:
+            profiling = collection_selected(collection, profiling_collections) or settings['profiling']
+        if remove_dev:
+            for_dev = not collection_selected(collection, dev_collections) and settings['for_dev']
+        else:
+            for_dev = collection_selected(collection, dev_collections) or settings['for_dev']
+
+        write_python_settings_file(collection, settings_dir,
+                                   profiling=profiling, for_dev=for_dev)
 
 
-def generate_collection_docker_file(collection, snoop_image, settings_dir, snoop_port,
-                                    profiling=False, for_dev=False, pg_port=None):
+def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_port,
+                                 profiling=False, for_dev=False, pg_port=None):
     '''Generate the corresponding collection docker file using the docker template.
 
     :param collection: the collection name
@@ -226,32 +252,45 @@ def read_collection_docker_file(collection, settings_dir):
         return snoop_image, snoop_port
 
 
-def regenerate_collections_docker_files(collections, snoop_image=None, profiling=None, for_dev=False):
-    '''Re-generate the collections docker files. Returns the next available port to
-    expose postgresl database from docker.
+def write_collections_docker_files(collections, snoop_image=None, profiling_collections=None,
+                                   remove_profiling=False, dev_collections=None, remove_dev=False):
+    '''Generate the collections docker files. Returns the next available port to
+    expose postgresl database from docker and the number of dev instances.
 
     :param collections: the collections name list
     :param snoop_image: the snoop image name
-    :param profiling: a list of collections selected for profiling
-    :param for_dev: if true, will add development settings
-    :return int
+    :param profiling_collections: the collections selected for profiling/no profiling
+    :param remove_profiling: if true, remove profiling from collections in profiling_collections
+    :param dev_collections: collections selected for dev/no dev
+    :param remove_dev: if true, remove dev from collections in dev_collections
+    :return (int, int)
     '''
     pg_port = default_pg_port + 1
-    for collection in collections:
+    dev_instances = 0
+
+    for collection, settings in collections.items():
         validate_collection_data_dir(collection)
 
         settings_dir = create_settings_dir(collection, ignore_exists=True)
         orig_snoop_image, snoop_port = read_collection_docker_file(collection, settings_dir)
         snoop_image = snoop_image if snoop_image else orig_snoop_image
-        profile = collection_selected(collection, profiling)
+        if remove_profiling:
+            profiling = not collection_selected(collection, profiling_collections) and settings['profiling']
+        else:
+            profiling = collection_selected(collection, profiling_collections) or settings['profiling']
+        if remove_dev:
+            for_dev = not collection_selected(collection, dev_collections) and settings['for_dev']
+        else:
+            for_dev = collection_selected(collection, dev_collections) or settings['for_dev']
+        dev_instances += int(for_dev)
 
-        generate_collection_docker_file(collection, snoop_image, settings_dir, snoop_port,
-                                        profile, for_dev, pg_port)
+        write_collection_docker_file(collection, snoop_image, settings_dir, snoop_port,
+                                     profiling, for_dev, pg_port)
         pg_port += 1
-    return pg_port
+    return pg_port, dev_instances
 
 
-def generate_docker_file(collections, for_dev=False):
+def write_global_docker_file(collections, for_dev=False):
     '''Generate the override docker file from collection docker files.
 
     :param collections: the collections name list
