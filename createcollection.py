@@ -5,7 +5,7 @@ import os.path
 
 from jinja2 import Template
 
-from src.util import get_collections_data, validate_collections, env_file_name, cleanup, \
+from src.common import get_collections_data, validate_collections, env_file_name, cleanup, \
     write_global_docker_file, templates_dir_name, collection_allowed_chars, \
     validate_collection_name, validate_collection_data_dir, create_settings_dir, \
     write_collection_docker_file, volumes_dir_name, write_python_settings_file
@@ -62,7 +62,7 @@ def create_pg_dir(collection):
 if __name__ == '__main__':
     args = get_args()
 
-    collections, snoop_port, pg_port, for_dev = get_collections_data(args.collection)
+    collections, snoop_port, pg_port, dev_instances = get_collections_data(args.collection)
     if len(collections):
         validate_collections(collections)
     validate_collection_data_dir(args.collection)
@@ -78,7 +78,7 @@ if __name__ == '__main__':
                                      snoop_port, args.profiling, args.dev, pg_port)
         generate_env_file(settings_dir)
         write_python_settings_file(args.collection, settings_dir, args.profiling, args.dev)
-        write_global_docker_file(ordered_collections, args.dev or for_dev)
+        write_global_docker_file(ordered_collections, args.dev or bool(dev_instances))
     except Exception as e:
         print('Error creating collection: %s' % e)
         cleanup(args.collection)

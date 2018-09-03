@@ -1,7 +1,7 @@
 import argparse
 import json
 
-from src.util import get_collections_data
+from src.common import get_collections_data
 
 
 def get_args():

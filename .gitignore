@@ -18,3 +18,5 @@ __pycache__
 /.python-version
 /profiles
 /templates/docker-custom-*.yml
+/.cache
+/.pytest_cache

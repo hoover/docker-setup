@@ -1,6 +1,6 @@
 import argparse
 
-from src.util import validate_collections, get_collections_data, write_global_docker_file, \
+from src.common import validate_collections, get_collections_data, write_global_docker_file, \
     write_collections_docker_files, write_python_settings_files
 
 
@@ -53,11 +53,10 @@ if __name__ == '__main__':
                                                            collections_names)
         for_dev, remove_dev = read_collections_arg(args.dev, args.remove_dev, collections_names)
 
-        write_python_settings_files(collections, profiling, remove_profiling, for_dev,
-                                    remove_dev)
-        write_collections_docker_files(collections, args.snoop_image, profiling, remove_profiling,
-                                       for_dev, remove_dev)
-        write_global_docker_file(collections, args.dev)
+        write_python_settings_files(collections, profiling, remove_profiling, for_dev, remove_dev)
+        _, dev_instances = write_collections_docker_files(collections, args.snoop_image, profiling,
+                                                          remove_profiling, for_dev, remove_dev)
+        write_global_docker_file(collections, bool(dev_instances))
     except Exception as e:
         print('Error updating collections')
         raise

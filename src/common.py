@@ -67,23 +67,21 @@ def get_collections_data(new_collection=None):
     collections = {}
     last_snoop_port = start_snoop_port - 1
     pg_port = default_pg_port + 1
-    for_dev = 0
+    dev_instances = 0
     exists = False
 
     with open(docker_file_name) as collections_file:
         collections_settings = yaml.load(collections_file)
         for service, settings in collections_settings['services'].items():
-            if service in ['snoop-rabbitmq', 'snoop-tika', 'search-pg', 'search-es']:
-                for_dev = True
-            if service.startswith('snoop-pg--') and 'ports' in settings:
-                port = int(settings['ports'][0].split(sep=':')[0])
-                if port >= pg_port:
-                    pg_port = port + 1
             if service.startswith('snoop--'):
                 collection_name = service[len('snoop--'):]
-                collections[collection_name] = {'profiling': has_volume(settings, './profiles'),
-                                                'for_dev': has_volume(settings, '../snoop2')}
-                for_dev += int(collections[collection_name]['for_dev'])
+                collections[collection_name] = {
+                    'profiling': has_volume(settings, './profiles') and
+                    has_volume(settings, './settings/urls.py'),
+                    'for_dev': has_volume(settings, '../snoop2')}
+                if collections[collection_name]['for_dev']:
+                    dev_instances += 1
+                    pg_port += 1
 
                 if new_collection and collection_name.lower() == new_collection.lower():
                     exit_collection_exists(new_collection)
@@ -95,7 +93,7 @@ def get_collections_data(new_collection=None):
 
     ordered_collections = OrderedDict(sorted(collections.items(), key=lambda t: t[0]))
 
-    return ordered_collections, last_snoop_port + 1, pg_port, for_dev
+    return ordered_collections, last_snoop_port + 1, pg_port, dev_instances
 
 
 def validate_collections(collections, exit_on_errors=True):
@@ -257,7 +255,7 @@ def read_collection_docker_file(collection, settings_dir):
 def write_collections_docker_files(collections, snoop_image=None, profiling_collections=None,
                                    remove_profiling=False, dev_collections=None, remove_dev=False):
     '''Generate the collections docker files. Returns the next available port to
-    expose postgresl database from docker.
+    expose postgresl database from docker and the number of dev instances.
 
     :param collections: the collections name list
     :param snoop_image: the snoop image name
@@ -265,9 +263,11 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
     :param remove_profiling: if true, remove profiling from collections in profiling_collections
     :param dev_collections: collections selected for dev/no dev
     :param remove_dev: if true, remove dev from collections in dev_collections
-    :return int
+    :return (int, int)
     '''
     pg_port = default_pg_port + 1
+    dev_instances = 0
+
     for collection, settings in collections.items():
         validate_collection_data_dir(collection)
 
@@ -282,11 +282,12 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
             for_dev = not collection_selected(collection, dev_collections) and settings['for_dev']
         else:
             for_dev = collection_selected(collection, dev_collections) or settings['for_dev']
+        dev_instances += int(for_dev)
 
         write_collection_docker_file(collection, snoop_image, settings_dir, snoop_port,
                                      profiling, for_dev, pg_port)
         pg_port += 1
-    return pg_port
+    return pg_port, dev_instances
 
 
 def write_global_docker_file(collections, for_dev=False):
