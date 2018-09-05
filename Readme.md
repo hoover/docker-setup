@@ -12,7 +12,7 @@ These instructions have been tested on Debian Jessie.
 
 2. Install docker:
 
-    ```bash
+    ```shell
     apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common python3.6 python3-pip
     pip3 install -r requirements.txt
     curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
@@ -26,7 +26,7 @@ These instructions have been tested on Debian Jessie.
 
 3. Clone the repo and set up folders:
 
-    ```bash
+    ```shell
     git clone https://github.com/hoover/docker-setup /opt/hoover
     cd /opt/hoover
     mkdir -p volumes volumes/metrics volumes/metrics/users volumes/search-es-snapshots volumes/search-es/data collections
@@ -58,7 +58,7 @@ These instructions have been tested on Debian Jessie.
 
 5. Spin up the docker containers, run migrations, create amdin user:
 
-    ```bash
+    ```shell
     docker-compose run --rm search ./manage.py migrate
     docker-compose run --rm search ./manage.py createsuperuser
     docker-compose run --rm ui npm run build
@@ -68,7 +68,7 @@ These instructions have been tested on Debian Jessie.
 
 6. Import the test dataset:
 
-    ```bash
+    ```shell
     git clone https://github.com/hoover/testdata collections/testdata
     python3 ./createcollection.py -c testdata
     ```
@@ -142,7 +142,7 @@ DOCKER_HOOVER_TWOFACTOR_ENABLED=on
 
 Then generate an invitation for your user (replace `admin` with your username):
 
-```bash
+```shell
 docker-compose run --rm search ./manage.py invite admin
 ```
 
@@ -163,7 +163,7 @@ Hoover:
 * Register _ocr folder_ as a source for OCR named `myocr` (choose any name you
   like):
 
-    ```
+    ```shell
     docker-compose run --rm snoop--testdata ./manage.py createocrsource myocr /opt/hoover/collections/testdata/ocr/myocr
     # wait for jobs to finish
     ```
@@ -198,31 +198,54 @@ git clone https://github.com/hoover/search
 git clone https://github.com/hoover/ui
 ```
 
-Create a `docker-compose.override.yml` file in `docker-setup` with the
-following content. It will mount the code repositories inside the docker
-containers to run the local development code:
+When creating collections or updating settings use the `-d` option. E.g.:
+```shell
+python3 ./createcollection.py -c <collection_name> -d
+python3 ./updatesettings.py -d <collection_names_list>
+```
 
+It will generate the following code in the docker-compose.override.yml:
 ```yaml
-version: "2"
+  snoop-rabbitmq:
+    ports:
+      - "5672:5672"
 
-services:
+  snoop-tika:
+    ports:
+      - "9998:9998"
 
-  snoop-worker:
-    volumes:
-      - ../snoop2:/opt/hoover/snoop
+  search-pg:
+    ports:
+      - "5432:5432"
 
-  snoop:
-    volumes:
-      - ../snoop2:/opt/hoover/snoop
-
-  search:
-    volumes:
-      - ../search:/opt/hoover/search
+  search-es:
+    ports:
+      - "9200:9200"
 
   ui:
     volumes:
-      - ../ui:/opt/hoover/ui
+      - ../ui:/opt/hoover/ui:cached
+
+  search:
+    volumes:
+      - ../search:/opt/hoover/search:cached
 ```
+
+For each collection it will add the following setting:
+```yaml
+  snoop-pg--testdata:
+    ports:
+      - "5433:5432"
+  snoop-worker--testdata:
+    volumes:
+      - ../snoop2:/opt/hoover/snoop:cached
+  snoop--testdata:
+    volumes:
+      - ../snoop2:/opt/hoover/snoop:cached
+```
+
+This will mount the code repositories inside the docker containers to run the
+local development code.
 
 
 ### Docker images
@@ -235,7 +258,7 @@ to the master branches: [snoop2][], [search][], [ui][].
 
 You can also build images locally. For example, the snoop2 image:
 
-```
+```shell
 cd snoop2
 docker build . --tag snoop2
 ```
@@ -280,12 +303,12 @@ To create a collection, copy the original files in the following folder:
 `collections/<collection_name>/data`
 
 Then run the following command:
-```bash
+```shell
 python3 ./createcollection.py -c <collection_name>
 ```
 
 The script will ask you to run additional commands if it ran succesfully:
-```bash
+```shell
 # run migrations
 docker-compose run --rm snoop--<collection_name> ./manage.py migrate
 # reset stats index
@@ -323,12 +346,12 @@ rename the index on import.
 Exporting:
 
 1. Export the search index:
-```bash
+```shell
 docker-compose run --rm -T snoop--<collection_name> ./manage.py exportcollectionindex <collection_name> | gzip -1 > <collection_name>-index.tgz
 ```
 
 2. Run the following command to stop docker-compose:
-```bash
+```shell
 docker-compose down
 ```
 
@@ -337,7 +360,7 @@ docker-compose down
 4. Copy the directory `snoop-blobs/<collection_name>`
 
 5. Run the following command to start docker-compose:
-```bash
+```shell
 docker-compose up -d
 ```
 
@@ -346,7 +369,7 @@ Importing:
 1. Create a new collection <collection_name> (see above)
 
 2. Run the following command to stop docker-compose:
-```bash
+```shell
 docker-compose down
 ```
 
@@ -355,12 +378,12 @@ docker-compose down
 4. Copy the blobs to the directory `snoop-blobs/<collection_name>`
 
 5. Run the following command to start docker-compose:
-```bash
+```shell
 docker-compose up -d
 ```
 
 6. Wait about 1 minute for docker to start and then import the search index:
-```bash
+```shell
 docker-compose run --rm -T snoop--<collection_name> ./manage.py importcollectionindex <collection_name> < <collection_name>-index.tgz
 ```
 
@@ -393,3 +416,18 @@ docker-compose run --rm snoop ./manage.py retrytasks --func filesystem.walk --st
 
 Both `--func` and `--status` are optional and serve to filter down the number
 of tasks.
+
+
+## Adding custom settings for docker services
+To add custom settings to docker services create a file `docker-custom-services.yml` in the
+`templates` directory and add services with custom settings there in yml format. E.g.:
+```yaml
+  search-es:
+    environment:
+      ES_JAVA_OPTS: -Xms2g -Xmx2g
+```
+
+After that run the update script:
+```shell
+python3 ./updatesettings.py -c <collection_name>
+```

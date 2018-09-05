@@ -1,0 +1,16 @@
+services:
+  snoop-pg--testdata1:
+    volumes:
+      - ./volumes/snoop-pg--testdata1/data:/var/lib/postgresql/data
+
+  snoop--testdata1:
+    ports:
+      - "45025:80"
+
+  snoop-pg--testdata2:
+    volumes:
+      - ./volumes/snoop-pg--testdata2/data:/var/lib/postgresql/data
+
+  snoop--testdata2:
+    ports:
+      - "45026:80"

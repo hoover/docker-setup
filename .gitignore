@@ -15,3 +15,8 @@ __pycache__
 /collection*.txt
 /settings/*/
 /settings/*-testing.py
+/.python-version
+/profiles
+/templates/docker-custom-*.yml
+/.cache
+/.pytest_cache
