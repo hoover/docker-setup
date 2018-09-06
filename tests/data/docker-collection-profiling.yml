@@ -9,7 +9,7 @@
   snoop-worker--testdata:
     image: snoop_image
     volumes:
-      - ./profiles:/opt/hoover/snoop/profiles
+      - ./profiles/testdata:/opt/hoover/snoop/profiles
       - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py
       - ./gnupg:/opt/hoover/gnupg
       - ./collections:/opt/hoover/collections
@@ -23,11 +23,12 @@
       - snoop-stats-es
       - search-es
       - snoop-pg--testdata
+    command: ./manage.py runworkers
 
   snoop--testdata:
     image: snoop_image
     volumes:
-      - ./profiles:/opt/hoover/snoop/profiles
+      - ./profiles/testdata:/opt/hoover/snoop/profiles
       - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py
       - ./gnupg:/opt/hoover/gnupg
       - ./collections:/opt/hoover/collections

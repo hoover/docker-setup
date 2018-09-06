@@ -70,7 +70,7 @@ These instructions have been tested on Debian Jessie.
 
     ```shell
     git clone https://github.com/hoover/testdata collections/testdata
-    python3 ./createcollection.py -c testdata
+    ./createcollection -c testdata
     ```
 
 
@@ -188,6 +188,30 @@ gpg --home gnupg --delete-key ABCDEF01
 gpg --home gnupg --import < path_to_key_nopassword
 ```
 
+### Profiling
+It is possible to generate profiling data using the following commands:
+```shell
+./createcollection -c <collection_name> -p
+./updatesettings -p <collection_names_list>
+```
+
+On `createcollection` the `-p` option will add profiling settings for the new
+collection. On `updatesettings` the option `-p` will add profiling settings
+to the collections in the list. E.g. `-p collection1 collection2`. If the list
+was empty it will add profiling settings to all existing collections.
+
+The profiling data can be found in directory `./profiling/<collection_name>`.
+One of the following tools can be used to read the profiling data:
+- [SnakeViz](https://jiffyclub.github.io/snakeviz/)
+- [pyprof2calltree](https://pypi.org/project/pyprof2calltree/)
+
+To remove profiling from a list of collections run the following command:
+```shell
+./updatesettings -n <collection_names_list>
+```
+
+Leave the collection list empty to remove profiling for all collections.
+
 ### Development
 Clone the code repositories:
 
@@ -200,9 +224,14 @@ git clone https://github.com/hoover/ui
 
 When creating collections or updating settings use the `-d` option. E.g.:
 ```shell
-python3 ./createcollection.py -c <collection_name> -d
-python3 ./updatesettings.py -d <collection_names_list>
+./createcollection -c <collection_name> -d
+./updatesettings -d <collection_names_list>
 ```
+
+On `createcollection` the `-d` option will add development settings for the new
+collection. On `updatesettings` the option `-d` will add development settings
+to the collections in the list. E.g. `-d collection1 collection2`. If the list
+was empty it will add development settings to all existing collections.
 
 It will generate the following code in the docker-compose.override.yml:
 ```yaml
@@ -247,6 +276,12 @@ For each collection it will add the following setting:
 This will mount the code repositories inside the docker containers to run the
 local development code.
 
+To remove development from a list of collections use the following command:
+```shell
+./updatesettings -r <collection_names_list>
+```
+
+Leave the collection list empty to remove development for all collections.
 
 ### Docker images
 Docker-hub builds images based on the Hoover GitHub repos triggered by pushes
@@ -304,7 +339,7 @@ To create a collection, copy the original files in the following folder:
 
 Then run the following command:
 ```shell
-python3 ./createcollection.py -c <collection_name>
+./createcollection -c <collection_name>
 ```
 
 The script will ask you to run additional commands if it ran succesfully:
@@ -389,7 +424,7 @@ docker-compose run --rm -T snoop--<collection_name> ./manage.py importcollection
 
 ### Deleting a collection
 ```shell
-python3 ./removecollection.py -c <collection_name>
+./removecollection -c <collection_name>
 ```
 
 This will delete the collection and associated files and directories, the
@@ -429,5 +464,5 @@ To add custom settings to docker services create a file `docker-custom-services.
 
 After that run the update script:
 ```shell
-python3 ./updatesettings.py -c <collection_name>
+./updatesettings
 ```
