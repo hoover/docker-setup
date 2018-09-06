@@ -21,6 +21,7 @@
       - snoop-stats-es
       - search-es
       - snoop-pg--{{ collection_name }}
+    command: ./manage.py runworkers
 
   snoop--{{ collection_name }}:
     image: {{ snoop_image }}

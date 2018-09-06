@@ -88,7 +88,7 @@ def get_collections_data(new_collection=None):
             if service.startswith('snoop--'):
                 collection_name = service[len('snoop--'):]
                 collections[collection_name] = {
-                    'profiling': has_volume(settings, './profiles') and
+                    'profiling': has_volume(settings, './profiles/%s' % collection_name) and
                     has_volume(settings, './settings/urls.py'),
                     'for_dev': has_volume(settings, '../snoop2')}
                 if collections[collection_name]['for_dev']:
@@ -247,7 +247,8 @@ def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_po
     snoop_port = snoop_port if snoop_port else start_snoop_port
     profiling_volumes = ''
     if profiling:
-        profiling_volumes = '\n      - ./profiles:/opt/hoover/snoop/profiles' + \
+        profiling_volumes = '\n      - ./%s:/opt/hoover/snoop/profiles' % \
+                            os.path.join('profiles', collection) + \
                             '\n      - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py'
 
     with open(os.path.join(templates_dir_name, docker_collection_file_name)) as docker_template:

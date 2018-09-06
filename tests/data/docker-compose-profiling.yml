@@ -5,7 +5,7 @@ services:
 
   snoop--testdata1:
     volumes:
-      - ./profiles:/opt/hoover/snoop/profiles
+      - ./profiles/testdata1:/opt/hoover/snoop/profiles
       - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py
     ports:
       - "45025:80"
@@ -16,7 +16,7 @@ services:
 
   snoop--testdata2:
     volumes:
-      - ./profiles:/opt/hoover/snoop/profiles
+      - ./profiles/testdata2:/opt/hoover/snoop/profiles
       - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py
     ports:
       - "45026:80"
