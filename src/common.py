@@ -25,19 +25,19 @@ snoop_settings_profiling_file_name = 'snoop-settings-profiling.py'
 snoop_settings_dev_file_name = 'snoop-settings-dev.py'
 env_file_name = 'snoop.env'
 default_pg_port = 5432
+collection_exists_msg = 'Collection %s already exists!'
 
 
-def exit_collection_exists(collection):
-    print('Collection %s already exists!' % collection)
-    exit(1)
-
-
-def exit_invalid_collection(collection):
-    print('Collection %s does not exist!' % collection)
+def exit_msg(msg, *args):
+    print(msg % tuple(args))
     exit(1)
 
 
 def validate_collection_name(collection_name):
+    '''Return true if the given name is a valid collection name
+    :param collection_name:
+    :return: bool
+    '''
     if re.search('\W+', collection_name):
         print('Invalid collection name ' + collection_name)
         print('Allowed characters: ' + collection_allowed_chars)
@@ -52,6 +52,12 @@ def validate_collection_data_dir(collection_name):
 
 
 def has_volume(settings, volume_local):
+    '''Return true if the service docker compose settings contain a volume linked
+    to the given local directory.
+    :param settings: service settings in dict format
+    :param volume_local: local path
+    :return: bool
+    '''
     if 'volumes' not in settings:
         return False
     for volume in settings['volumes']:
@@ -61,6 +67,12 @@ def has_volume(settings, volume_local):
 
 
 def get_collections_data(new_collection=None):
+    '''Return collections data in form of a tuple of ordered dictionary, next
+    snoop available port, next postgresql available port (for development),
+    number of development instance
+    :param new_collection: new collection name (if any)
+    :return: (OrderedDict, bool, bool, int)
+    '''
     if not os.path.isfile(docker_file_name):
         return {}, start_snoop_port, default_pg_port + 1, False
 
@@ -84,7 +96,7 @@ def get_collections_data(new_collection=None):
                     pg_port += 1
 
                 if new_collection and collection_name.lower() == new_collection.lower():
-                    exit_collection_exists(new_collection)
+                    exit_msg(collection_exists_msg, new_collection)
                 exists = exists or (new_collection and collection_name.lower() == new_collection.lower())
 
                 port = int(settings['ports'][0].split(sep=':')[0])
@@ -97,6 +109,10 @@ def get_collections_data(new_collection=None):
 
 
 def validate_collections(collections, exit_on_errors=True):
+    '''Validates the collections found in the given list/dict of collections
+    :param collections: a list/dict o collections
+    :param exit_on_errors: if true exit when errors were found
+    '''
     errors = []
     for collection_name in collections:
         settings_dir = os.path.join(settings_dir_name, collection_name)
@@ -121,6 +137,12 @@ def validate_collections(collections, exit_on_errors=True):
 
 
 def collection_selected(collection, collections):
+    '''Returns true if the given collection was selected. A collection is selected
+    if it was found in the list of collections or the list of collections is empty.
+    :param collection: collection name
+    :param collections: list of collections
+    :return: bool
+    '''
     if collections is None:
         return False
     if len(collections) == 0:
@@ -130,6 +152,10 @@ def collection_selected(collection, collections):
 
 
 def cleanup(collection_name):
+    '''Does a cleanup of collection files. Used when the collection creation
+    encountered an error.
+    :param collection_name:
+    '''
     settings_dir = os.path.join(settings_dir_name, collection_name)
     if os.path.isdir(settings_dir):
         rmtree(settings_dir, ignore_errors=True)
@@ -143,14 +169,14 @@ def create_settings_dir(collection, ignore_exists=False):
 
     :param collection: the collection name
     :param ignore_exists: if true do not exit when the directory already exists
-    :return str
+    :return: str
     '''
     settings_dir = os.path.join(settings_dir_name, collection)
     try:
         os.mkdir(settings_dir)
     except FileExistsError:
         if not ignore_exists:
-            exit_collection_exists(collection)
+            exit_msg(collection_exists_msg, collection)
     return settings_dir
 
 
@@ -211,6 +237,7 @@ def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_po
     :param snoop_image: the snoop image name
     :param settings_dir: the directory containing the settings files
     :param snoop_port: the snoop web admin port exposed by docker
+    :param profiling: if true, will add profiling settings
     :param for_dev: if true, will add development settings
     :param pg_port: the port on which the postgresql database is exposed if for_dev enabled
     '''
@@ -243,7 +270,7 @@ def read_collection_docker_file(collection, settings_dir):
 
     :param collection: the collection name
     :param settings_dir: the directory containing the settings files
-    :return: snoop_image, snoop_port (tuple)
+    :return: (str, int)
     '''
     with open(os.path.join(settings_dir, docker_collection_file_name)) as collection_file:
         settings = yaml.load(collection_file)
@@ -263,7 +290,7 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
     :param remove_profiling: if true, remove profiling from collections in profiling_collections
     :param dev_collections: collections selected for dev/no dev
     :param remove_dev: if true, remove dev from collections in dev_collections
-    :return (int, int)
+    :return: (int, int)
     '''
     pg_port = default_pg_port + 1
     dev_instances = 0

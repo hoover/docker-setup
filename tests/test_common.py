@@ -1,8 +1,12 @@
 from collections import OrderedDict
+import os
 from pathlib import Path
 import pytest
 
-from src.common import get_collections_data, write_python_settings_file
+import yaml
+
+from src.common import get_collections_data, write_python_settings_file, \
+    write_collection_docker_file, docker_collection_file_name
 import src.common as c
 
 
@@ -60,3 +64,30 @@ def test_write_python_settings_file(tmpdir):
         settings = settings_file.read()
         assert 'PROFILING_ENABLED' not in settings
         assert 'REMOTE_DEBUG_ENABLED' in settings
+
+
+def test_write_collection_docker_file(data_dir_path, tmpdir):
+    collection = 'testdata'
+    snoop_image = 'snoop_image'
+    tmpdir_path = str(tmpdir)
+
+    write_collection_docker_file(collection, snoop_image, tmpdir_path, 45025)
+    with open(os.path.join(tmpdir_path, docker_collection_file_name)) as collection_file, \
+            open(str(data_dir_path / 'docker-collection-clean.yml')) as test_file:
+        collection_settings = yaml.load(collection_file)
+        test_settings = yaml.load(test_file)
+        assert collection_settings == test_settings
+
+    write_collection_docker_file(collection, snoop_image, tmpdir_path, 45025, profiling=True)
+    with open(os.path.join(tmpdir_path, docker_collection_file_name)) as collection_file, \
+            open(str(data_dir_path / 'docker-collection-profiling.yml')) as test_file:
+        collection_settings = yaml.load(collection_file)
+        test_settings = yaml.load(test_file)
+        assert collection_settings == test_settings
+
+    write_collection_docker_file(collection, snoop_image, tmpdir_path, 45025, for_dev=True, pg_port=5433)
+    with open(os.path.join(tmpdir_path, docker_collection_file_name)) as collection_file, \
+            open(str(data_dir_path / 'docker-collection-dev.yml')) as test_file:
+        collection_settings = yaml.load(collection_file)
+        test_settings = yaml.load(test_file)
+        assert collection_settings == test_settings
