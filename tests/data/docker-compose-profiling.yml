@@ -10,6 +10,9 @@ services:
     ports:
       - "45025:80"
 
+  snoop-worker--testdata1:
+    command: ./manage.py runworkers
+
   snoop-pg--testdata2:
     volumes:
       - ./volumes/snoop-pg--testdata2/data:/var/lib/postgresql/data
@@ -20,3 +23,6 @@ services:
       - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py
     ports:
       - "45026:80"
+
+  snoop-worker--testdata2:
+    command: ./manage.py runworkers

@@ -19,8 +19,8 @@ def test_get_collections_data(data_dir_path):
     c.docker_file_name = str(data_dir_path / 'docker-compose-clean.yml')
     collections, snoop_port, pg_port, for_dev = get_collections_data()
     assert collections == OrderedDict((
-        ('testdata1', {'profiling': False, 'for_dev': False}),
-        ('testdata2', {'profiling': False, 'for_dev': False})))
+        ('testdata1', {'profiling': False, 'for_dev': False, 'autoindex': True}),
+        ('testdata2', {'profiling': False, 'for_dev': False, 'autoindex': True})))
     assert snoop_port == 45027
     assert pg_port == 5433
     assert for_dev == 0
@@ -28,8 +28,8 @@ def test_get_collections_data(data_dir_path):
     c.docker_file_name = str(data_dir_path / 'docker-compose-profiling.yml')
     collections, snoop_port, pg_port, for_dev = get_collections_data()
     assert collections == OrderedDict((
-        ('testdata1', {'profiling': True, 'for_dev': False}),
-        ('testdata2', {'profiling': True, 'for_dev': False})))
+        ('testdata1', {'profiling': True, 'for_dev': False, 'autoindex': True}),
+        ('testdata2', {'profiling': True, 'for_dev': False, 'autoindex': True})))
     assert snoop_port == 45027
     assert pg_port == 5433
     assert for_dev == 0
@@ -37,8 +37,8 @@ def test_get_collections_data(data_dir_path):
     c.docker_file_name = str(data_dir_path / 'docker-compose-dev.yml')
     collections, snoop_port, pg_port, for_dev = get_collections_data()
     assert collections == OrderedDict((
-        ('testdata1', {'profiling': False, 'for_dev': True}),
-        ('testdata2', {'profiling': False, 'for_dev': True})))
+        ('testdata1', {'profiling': False, 'for_dev': True, 'autoindex': True}),
+        ('testdata2', {'profiling': False, 'for_dev': True, 'autoindex': True})))
     assert snoop_port == 45027
     assert pg_port == 5435
     assert for_dev == 2
