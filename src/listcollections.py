@@ -17,6 +17,7 @@ def print_collections(collections):
         print('%d. %s' % (index, collection))
         print('  - profiling: %s' % settings['profiling'])
         print('  - development: %s' % settings['for_dev'])
+        print('  - auto-indexing: %s' % settings['autoindex'])
         index += 1
 
 

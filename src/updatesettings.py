@@ -22,6 +22,13 @@ def get_args():
     profiling.add_argument('-n', '--no-profiling', action='append', nargs='*',
                            help='Remove profiling settings for the given collections. ' +
                                 'If no collections were specified profiling will be disabled for all.')
+    autoindex = parser.add_mutually_exclusive_group()
+    autoindex.add_argument('-a', '--autoindex', action='append', nargs='*',
+                           help='Enable automatic indexing for the given collections. ' +
+                                'If no collections were specified auto-indexing will be enabled for all.')
+    autoindex.add_argument('-m', '--manual-indexing', action='append', nargs='*',
+                           help='Enable automatic indexing for the given collections. ' +
+                                'If no collections were specified auto-indexing will be disabled for all.')
     return parser.parse_args()
 
 
@@ -49,10 +56,12 @@ def update_settings(args):
     profiling, remove_profiling = read_collections_arg(args.profiling, args.no_profiling,
                                                        collections_names)
     for_dev, remove_dev = read_collections_arg(args.dev, args.remove_dev, collections_names)
+    indexing, disable = read_collections_arg(args.autoindex, args.manual_indexing, collections_names)
 
     write_python_settings_files(collections, profiling, remove_profiling, for_dev, remove_dev)
     _, dev_instances = write_collections_docker_files(collections, args.snoop_image, profiling,
-                                                      remove_profiling, for_dev, remove_dev)
+                                                      remove_profiling, for_dev, remove_dev,
+                                                      indexing, disable)
     write_global_docker_file(collections, bool(dev_instances))
 
     print('Restart docker-compose:')
