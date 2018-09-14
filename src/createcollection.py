@@ -1,26 +1,16 @@
 import argparse
-from base64 import b64encode
 from collections import OrderedDict
 import os.path
 
 from jinja2 import Template
 
-from src.common import get_collections_data, validate_collections, env_file_name, cleanup, \
+from src.common import get_collections_data, validate_collections, cleanup, \
     write_global_docker_file, templates_dir_name, collection_allowed_chars, \
     validate_collection_name, validate_collection_data_dir, create_settings_dir, \
     write_collection_docker_file, volumes_dir_name, write_python_settings_file, \
-    default_snoop_image
+    default_snoop_image, write_env_file
 
 steps_file_name = 'collection-%s-steps.txt'
-
-
-def generate_env_file(settings_dir):
-    with open(os.path.join(templates_dir_name, env_file_name)) as env_template:
-        template = Template(env_template.read())
-        env_settings = template.render(secret_key=b64encode(os.urandom(100)).decode('utf-8'))
-
-    with open(os.path.join(settings_dir, env_file_name), mode='w') as env_file:
-        env_file.write(env_settings)
 
 
 def write_instructions(args):
@@ -78,7 +68,7 @@ def create_collection(args):
         write_collection_docker_file(args.collection, args.snoop_image, settings_dir,
                                      snoop_port, args.profiling, args.dev, pg_port,
                                      not args.manual_indexing)
-        generate_env_file(settings_dir)
+        write_env_file(settings_dir)
         write_python_settings_file(args.collection, settings_dir, args.profiling, args.dev)
         write_global_docker_file(ordered_collections, args.dev or bool(dev_instances))
     except Exception as e:
