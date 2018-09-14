@@ -8,7 +8,8 @@ from jinja2 import Template
 from src.common import get_collections_data, validate_collections, env_file_name, cleanup, \
     write_global_docker_file, templates_dir_name, collection_allowed_chars, \
     validate_collection_name, validate_collection_data_dir, create_settings_dir, \
-    write_collection_docker_file, volumes_dir_name, write_python_settings_file
+    write_collection_docker_file, volumes_dir_name, write_python_settings_file, \
+    default_snoop_image
 
 steps_file_name = 'collection-%s-steps.txt'
 
@@ -23,7 +24,7 @@ def generate_env_file(settings_dir):
 
 
 def write_instructions(args):
-    with open(os.path.join(templates_dir_name, steps_file_name % '')) as steps_template:
+    with open(os.path.join(templates_dir_name, 'collection-steps.txt')) as steps_template:
         template = Template(steps_template.read())
         steps = template.render(collection_name=args.collection,
                                 collection_index=str.lower(args.collection))
@@ -40,7 +41,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='Create a collection.')
     parser.add_argument('-c', '--collection', required=True,
                         help='Collection name; allowed characters: ' + collection_allowed_chars)
-    parser.add_argument('-s', '--snoop-image', default='liquidinvestigations/hoover-snoop2',
+    parser.add_argument('-s', '--snoop-image', default=default_snoop_image,
                         help='Snoop docker image')
     parser.add_argument('-d', '--dev', action='store_const', const=True, default=False,
                         help='Add development settings to the docker file')

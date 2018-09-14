@@ -18,6 +18,7 @@ def print_collections(collections):
         print('  - profiling: %s' % settings['profiling'])
         print('  - development: %s' % settings['for_dev'])
         print('  - auto-indexing: %s' % settings['autoindex'])
+        print('  - image: %s' % settings['image'])
         index += 1
 
 

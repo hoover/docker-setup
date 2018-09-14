@@ -27,6 +27,7 @@ snoop_settings_dev_file_name = 'snoop-settings-dev.py'
 env_file_name = 'snoop.env'
 default_pg_port = 5432
 collection_exists_msg = 'Collection %s already exists!'
+default_snoop_image = 'liquidinvestigations/hoover-snoop2'
 
 
 def exit_msg(msg, *args):
@@ -97,7 +98,8 @@ def get_collections_data(new_collection=None):
                 collections.setdefault(collection_name, {}).update({
                     'profiling': has_volume(settings, './profiles/%s' % collection_name) and
                     has_volume(settings, './settings/urls.py'),
-                    'for_dev': has_volume(settings, '../snoop2')})
+                    'for_dev': has_volume(settings, '../snoop2'),
+                    'image': settings['image']})
                 if collections[collection_name]['for_dev']:
                     dev_instances += 1
                     pg_port += 1
@@ -318,7 +320,7 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
 
         settings_dir = create_settings_dir(collection, ignore_exists=True)
         orig_snoop_image, snoop_port = read_collection_docker_file(collection, settings_dir)
-        snoop_image = snoop_image if snoop_image else orig_snoop_image
+        updated_snoop_image = snoop_image if snoop_image else orig_snoop_image
         if remove_profiling:
             profiling = not collection_selected(collection, profiling_collections) and settings['profiling']
         else:
@@ -333,7 +335,7 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
         else:
             indexing = collection_selected(collection, index_collections) or settings['autoindex']
 
-        write_collection_docker_file(collection, snoop_image, settings_dir, snoop_port,
+        write_collection_docker_file(collection, updated_snoop_image, settings_dir, snoop_port,
                                      profiling, for_dev, pg_port, indexing)
         pg_port += 1
     return pg_port, dev_instances
