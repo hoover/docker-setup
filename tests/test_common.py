@@ -1,8 +1,9 @@
 from collections import OrderedDict
 import os
 from pathlib import Path
-import pytest
+import re
 
+import pytest
 import yaml
 
 from src.common import get_collections_data, write_python_settings_file, \
@@ -52,6 +53,8 @@ def test_write_python_settings_file(tmpdir):
         settings = settings_file.read()
         assert 'PROFILING_ENABLED' not in settings
         assert 'REMOTE_DEBUG_ENABLED' not in settings
+        found = re.search('TASK_PREFIX = \'(\w+)\'', settings)
+        assert found and found.group(1) == collection
 
     write_python_settings_file(collection, str(tmpdir), profiling=True, for_dev=False)
     with open(str(tmpdir / 'snoop-settings.py')) as settings_file:

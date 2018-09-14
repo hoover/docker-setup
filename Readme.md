@@ -33,30 +33,7 @@ These instructions have been tested on Debian Jessie.
     chmod 777 volumes/search-es-snapshots volumes/search-es/data
     ```
 
-4. Create configuration files:
-
-    * `/opt/hoover/snoop.env`:
-
-        ```env
-        DOCKER_HOOVER_SNOOP_SECRET_KEY=some-random-secret
-        DOCKER_HOOVER_SNOOP_DEBUG=on
-        DOCKER_HOOVER_SNOOP_BASE_URL=http://snoop.hoover.example.com
-        ```
-
-    * `/opt/hoover/search.env`:
-
-        ```env
-        DOCKER_HOOVER_SEARCH_SECRET_KEY=some-random-secret
-        DOCKER_HOOVER_SEARCH_DEBUG=on
-        DOCKER_HOOVER_BASE_URL=http://hoover.example.com
-        ```
-
-    For local development, add the following to `/etc/hosts` to make the base URLs resolve to localhost:
-
-        127.0.0.1 snoop.hoover.example.com
-        127.0.0.1 hoover.example.com
-
-5. Spin up the docker containers, run migrations, create amdin user:
+4. Spin up the docker containers, run migrations, create amdin user:
 
     ```shell
     docker-compose run --rm search ./manage.py migrate
@@ -66,7 +43,7 @@ These instructions have been tested on Debian Jessie.
     docker-compose up -d
     ```
 
-6. Import the test dataset:
+5. Import the test dataset:
 
     ```shell
     git clone https://github.com/hoover/testdata collections/testdata
