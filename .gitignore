@@ -20,3 +20,5 @@ __pycache__
 /templates/docker-custom-*.yml
 /.cache
 /.pytest_cache
+/.venv
+/.vscode
