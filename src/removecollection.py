@@ -78,5 +78,5 @@ def remove_collection(args):
         remove_blobs(args.collection, args.yes)
 
     print('Restart docker-compose:')
-    print('  $ docker-compose down')
+    print('  $ docker-compose down --remove-orphans')
     print('  $ docker-compose up -d')
