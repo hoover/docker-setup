@@ -1,3 +1,4 @@
+from base64 import b64encode
 from collections import OrderedDict
 from curses.ascii import isalpha
 from functools import reduce
@@ -191,6 +192,21 @@ def create_settings_dir(collection, ignore_exists=False):
         if not ignore_exists:
             exit_msg(collection_exists_msg, collection)
     return settings_dir
+
+
+def write_env_file(settings_dir):
+    with open(os.path.join(templates_dir_name, env_file_name)) as env_template:
+        template = Template(env_template.read())
+        env_settings = template.render(secret_key=b64encode(os.urandom(100)).decode('utf-8'))
+
+    with open(os.path.join(settings_dir, env_file_name), mode='w') as env_file:
+        env_file.write(env_settings)
+
+
+def write_env_files(collections):
+    for collection in collections:
+        settings_dir = create_settings_dir(collection, ignore_exists=True)
+        write_env_file(settings_dir)
 
 
 def write_python_settings_file(collection, settings_dir, profiling=False, for_dev=False):
