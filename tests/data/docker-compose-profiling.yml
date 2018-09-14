@@ -5,10 +5,13 @@ services:
 
   snoop--testdata1:
     volumes:
-      - ./profiles:/opt/hoover/snoop/profiles
+      - ./profiles/testdata1:/opt/hoover/snoop/profiles
       - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py
     ports:
       - "45025:80"
+
+  snoop-worker--testdata1:
+    command: ./manage.py runworkers
 
   snoop-pg--testdata2:
     volumes:
@@ -16,7 +19,10 @@ services:
 
   snoop--testdata2:
     volumes:
-      - ./profiles:/opt/hoover/snoop/profiles
+      - ./profiles/testdata2:/opt/hoover/snoop/profiles
       - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py
     ports:
       - "45026:80"
+
+  snoop-worker--testdata2:
+    command: ./manage.py runworkers

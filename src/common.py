@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from curses.ascii import isalpha
 from functools import reduce
 import os
 import re
@@ -38,9 +39,15 @@ def validate_collection_name(collection_name):
     :param collection_name:
     :return: bool
     '''
+    if not collection_name:
+        print('Collection name must not be empty.')
+        exit(1)
     if re.search('\W+', collection_name):
         print('Invalid collection name ' + collection_name)
         print('Allowed characters: ' + collection_allowed_chars)
+        exit(1)
+    if not isalpha(collection_name[0]):
+        print('The first character must be a letter.')
         exit(1)
 
 
@@ -87,10 +94,10 @@ def get_collections_data(new_collection=None):
         for service, settings in collections_settings['services'].items():
             if service.startswith('snoop--'):
                 collection_name = service[len('snoop--'):]
-                collections[collection_name] = {
-                    'profiling': has_volume(settings, './profiles') and
+                collections.setdefault(collection_name, {}).update({
+                    'profiling': has_volume(settings, './profiles/%s' % collection_name) and
                     has_volume(settings, './settings/urls.py'),
-                    'for_dev': has_volume(settings, '../snoop2')}
+                    'for_dev': has_volume(settings, '../snoop2')})
                 if collections[collection_name]['for_dev']:
                     dev_instances += 1
                     pg_port += 1
@@ -102,6 +109,10 @@ def get_collections_data(new_collection=None):
                 port = int(settings['ports'][0].split(sep=':')[0])
                 if port > last_snoop_port:
                     last_snoop_port = port
+            if service.startswith('snoop-worker--'):
+                collection_name = service[len('snoop-worker--'):]
+                collections.setdefault(collection_name, {}).update({
+                    'autoindex': settings.get('command') == './manage.py runworkers'})
 
     ordered_collections = OrderedDict(sorted(collections.items(), key=lambda t: t[0]))
 
@@ -230,7 +241,7 @@ def write_python_settings_files(collections, profiling_collections=None, remove_
 
 
 def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_port,
-                                 profiling=False, for_dev=False, pg_port=None):
+                                 profiling=False, for_dev=False, pg_port=None, autoindex=True):
     '''Generate the corresponding collection docker file using the docker template.
 
     :param collection: the collection name
@@ -240,6 +251,7 @@ def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_po
     :param profiling: if true, will add profiling settings
     :param for_dev: if true, will add development settings
     :param pg_port: the port on which the postgresql database is exposed if for_dev enabled
+    :param autoindex: if true add the command to automatically index the collection
     '''
     dev_volumes = '\n      - ../snoop2:/opt/hoover/snoop:cached' if for_dev else ''
     pg_port = pg_port if pg_port else default_pg_port + 1
@@ -247,8 +259,10 @@ def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_po
     snoop_port = snoop_port if snoop_port else start_snoop_port
     profiling_volumes = ''
     if profiling:
-        profiling_volumes = '\n      - ./profiles:/opt/hoover/snoop/profiles' + \
+        profiling_volumes = '\n      - ./%s:/opt/hoover/snoop/profiles' % \
+                            os.path.join('profiles', collection) + \
                             '\n      - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py'
+    index_command = '    command: ./manage.py runworkers\n' if autoindex else ''
 
     with open(os.path.join(templates_dir_name, docker_collection_file_name)) as docker_template:
         template = Template(docker_template.read())
@@ -257,7 +271,8 @@ def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_po
                                               snoop_port=snoop_port,
                                               profiling_volumes=profiling_volumes,
                                               dev_volumes=dev_volumes,
-                                              dev_ports=dev_ports)
+                                              dev_ports=dev_ports,
+                                              index_command=index_command)
 
     with open(os.path.join(settings_dir, docker_collection_file_name), mode='w') \
             as collection_file:
@@ -280,7 +295,8 @@ def read_collection_docker_file(collection, settings_dir):
 
 
 def write_collections_docker_files(collections, snoop_image=None, profiling_collections=None,
-                                   remove_profiling=False, dev_collections=None, remove_dev=False):
+                                   remove_profiling=False, dev_collections=None, remove_dev=False,
+                                   index_collections=None, remove_indexing=False):
     '''Generate the collections docker files. Returns the next available port to
     expose postgresl database from docker and the number of dev instances.
 
@@ -290,6 +306,8 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
     :param remove_profiling: if true, remove profiling from collections in profiling_collections
     :param dev_collections: collections selected for dev/no dev
     :param remove_dev: if true, remove dev from collections in dev_collections
+    :param index_collections: collections selected for automatic/manual indexing
+    :param remove_indexing: if true, remove autoindexing from collections in dev_collections
     :return: (int, int)
     '''
     pg_port = default_pg_port + 1
@@ -310,9 +328,13 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
         else:
             for_dev = collection_selected(collection, dev_collections) or settings['for_dev']
         dev_instances += int(for_dev)
+        if remove_indexing:
+            indexing = not collection_selected(collection, index_collections) and settings['autoindex']
+        else:
+            indexing = collection_selected(collection, index_collections) or settings['autoindex']
 
         write_collection_docker_file(collection, snoop_image, settings_dir, snoop_port,
-                                     profiling, for_dev, pg_port)
+                                     profiling, for_dev, pg_port, indexing)
         pg_port += 1
     return pg_port, dev_instances
 

@@ -21,7 +21,7 @@
       - snoop-stats-es
       - search-es
       - snoop-pg--{{ collection_name }}
-
+{{ index_command }}
   snoop--{{ collection_name }}:
     image: {{ snoop_image }}
     volumes:{{ dev_volumes }}{{ profiling_volumes }}

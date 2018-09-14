@@ -33,3 +33,5 @@ SNOOP_COLLECTIONS_ELASTICSEARCH_URL = 'http://search-es:9200'
 
 SNOOP_GNUPG_HOME = '/opt/hoover/gnupg'
 
+TASK_PREFIX = '{{ collection_name }}'
+
