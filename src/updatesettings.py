@@ -6,8 +6,7 @@ from src.common import validate_collections, get_collections_data, write_global_
 
 def get_args():
     parser = argparse.ArgumentParser(description='Update the collections settings with given options.')
-    parser.add_argument('-s', '--snoop-image', default='liquidinvestigations/hoover-snoop2',
-                        help='Snoop docker image')
+    parser.add_argument('-s', '--snoop-image', help='Snoop docker image')
     for_dev = parser.add_mutually_exclusive_group()
     for_dev.add_argument('-d', '--dev', action='append', nargs='*',
                          help='Add development settings for the given collections. ' +
