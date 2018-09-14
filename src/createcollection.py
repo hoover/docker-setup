@@ -10,7 +10,7 @@ from src.common import get_collections_data, validate_collections, env_file_name
     validate_collection_name, validate_collection_data_dir, create_settings_dir, \
     write_collection_docker_file, volumes_dir_name, write_python_settings_file
 
-steps_file_name = 'collection%s steps.txt'
+steps_file_name = 'collection-%s-steps.txt'
 
 
 def generate_env_file(settings_dir):
@@ -28,7 +28,7 @@ def write_instructions(args):
         steps = template.render(collection_name=args.collection,
                                 collection_index=str.lower(args.collection))
 
-    collection_steps_file_name = steps_file_name % ' %s' % args.collection
+    collection_steps_file_name = steps_file_name % '%s' % args.collection
     with open(collection_steps_file_name, mode='w') as steps_file:
         steps_file.write(steps)
 
