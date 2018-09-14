@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from curses.ascii import isalpha
 from functools import reduce
 import os
 import re
@@ -38,9 +39,15 @@ def validate_collection_name(collection_name):
     :param collection_name:
     :return: bool
     '''
+    if not collection_name:
+        print('Collection name must not be empty.')
+        exit(1)
     if re.search('\W+', collection_name):
         print('Invalid collection name ' + collection_name)
         print('Allowed characters: ' + collection_allowed_chars)
+        exit(1)
+    if not isalpha(collection_name[0]):
+        print('The first character must be a letter.')
         exit(1)
 
 
