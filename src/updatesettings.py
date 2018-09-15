@@ -1,13 +1,12 @@
 import argparse
 
 from src.common import validate_collections, get_collections_data, write_global_docker_file, \
-    write_collections_docker_files, write_python_settings_files
+    write_collections_docker_files, write_python_settings_files, write_env_files
 
 
 def get_args():
     parser = argparse.ArgumentParser(description='Update the collections settings with given options.')
-    parser.add_argument('-s', '--snoop-image', default='liquidinvestigations/hoover-snoop2',
-                        help='Snoop docker image')
+    parser.add_argument('-s', '--snoop-image', help='Snoop docker image')
     for_dev = parser.add_mutually_exclusive_group()
     for_dev.add_argument('-d', '--dev', action='append', nargs='*',
                          help='Add development settings for the given collections. ' +
@@ -58,6 +57,7 @@ def update_settings(args):
     for_dev, remove_dev = read_collections_arg(args.dev, args.remove_dev, collections_names)
     indexing, disable = read_collections_arg(args.autoindex, args.manual_indexing, collections_names)
 
+    write_env_files(collections)
     write_python_settings_files(collections, profiling, remove_profiling, for_dev, remove_dev)
     _, dev_instances = write_collections_docker_files(collections, args.snoop_image, profiling,
                                                       remove_profiling, for_dev, remove_dev,

@@ -1,3 +1,4 @@
+from base64 import b64encode
 from collections import OrderedDict
 from curses.ascii import isalpha
 from functools import reduce
@@ -27,6 +28,7 @@ snoop_settings_dev_file_name = 'snoop-settings-dev.py'
 env_file_name = 'snoop.env'
 default_pg_port = 5432
 collection_exists_msg = 'Collection %s already exists!'
+default_snoop_image = 'liquidinvestigations/hoover-snoop2'
 
 
 def exit_msg(msg, *args):
@@ -97,7 +99,8 @@ def get_collections_data(new_collection=None):
                 collections.setdefault(collection_name, {}).update({
                     'profiling': has_volume(settings, './profiles/%s' % collection_name) and
                     has_volume(settings, './settings/urls.py'),
-                    'for_dev': has_volume(settings, '../snoop2')})
+                    'for_dev': has_volume(settings, '../snoop2'),
+                    'image': settings['image']})
                 if collections[collection_name]['for_dev']:
                     dev_instances += 1
                     pg_port += 1
@@ -189,6 +192,21 @@ def create_settings_dir(collection, ignore_exists=False):
         if not ignore_exists:
             exit_msg(collection_exists_msg, collection)
     return settings_dir
+
+
+def write_env_file(settings_dir):
+    with open(os.path.join(templates_dir_name, env_file_name)) as env_template:
+        template = Template(env_template.read())
+        env_settings = template.render(secret_key=b64encode(os.urandom(100)).decode('utf-8'))
+
+    with open(os.path.join(settings_dir, env_file_name), mode='w') as env_file:
+        env_file.write(env_settings)
+
+
+def write_env_files(collections):
+    for collection in collections:
+        settings_dir = create_settings_dir(collection, ignore_exists=True)
+        write_env_file(settings_dir)
 
 
 def write_python_settings_file(collection, settings_dir, profiling=False, for_dev=False):
@@ -318,7 +336,7 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
 
         settings_dir = create_settings_dir(collection, ignore_exists=True)
         orig_snoop_image, snoop_port = read_collection_docker_file(collection, settings_dir)
-        snoop_image = snoop_image if snoop_image else orig_snoop_image
+        updated_snoop_image = snoop_image if snoop_image else orig_snoop_image
         if remove_profiling:
             profiling = not collection_selected(collection, profiling_collections) and settings['profiling']
         else:
@@ -333,7 +351,7 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
         else:
             indexing = collection_selected(collection, index_collections) or settings['autoindex']
 
-        write_collection_docker_file(collection, snoop_image, settings_dir, snoop_port,
+        write_collection_docker_file(collection, updated_snoop_image, settings_dir, snoop_port,
                                      profiling, for_dev, pg_port, indexing)
         pg_port += 1
     return pg_port, dev_instances
