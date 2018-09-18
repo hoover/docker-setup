@@ -8,7 +8,8 @@ Follow the steps below to finish the collection creation:
   $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py resetstatsindex
 
 3. Wait a minute for docker to start and run the following command:
-  $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py createcollection {{ collection_index }} /opt/hoover/collections/{{ collection_name }}
+  $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py createcollection {{ collection_name }} /opt/hoover/collections/{{ collection_name }}
 
 4. Add the collection to search (--public is optional):
-  $ docker-compose run --rm search ./manage.py addcollection {{ collection_index }} http://snoop--{{ collection_name }}/collections/{{ collection_name }}/json --public
+  $ docker-compose run --rm search ./manage.py addcollection {{ collection_name }} --index {{ collection_index }} http://snoop--{{ collection_name }}/collections/{{ collection_name }}/json --public
+
