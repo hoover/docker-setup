@@ -7,7 +7,8 @@ import pytest
 import yaml
 
 from src.common import get_collections_data, write_python_settings_file, \
-    write_collection_docker_file, docker_collection_file_name
+    write_collection_docker_file, docker_collection_file_name, \
+    write_global_docker_file
 import src.common as c
 
 
@@ -16,8 +17,13 @@ def data_dir_path():
     return Path(__file__).absolute().parent / 'data'
 
 
-def test_get_collections_data(data_dir_path):
-    c.docker_file_name = str(data_dir_path / 'docker-compose-clean.yml')
+@pytest.fixture
+def templates_dir_path():
+    return Path(__file__).absolute().parent.parent / 'templates'
+
+
+def test_get_collections_data(monkeypatch, data_dir_path):
+    monkeypatch.setattr(c, 'docker_file_name', str(data_dir_path / 'docker-compose-clean.yml'))
     collections, snoop_port, pg_port, for_dev = get_collections_data()
     assert collections == OrderedDict((
         ('testdata1', {'profiling': False, 'for_dev': False, 'autoindex': True, 'image': 'snoop2'}),
@@ -35,7 +41,7 @@ def test_get_collections_data(data_dir_path):
     assert pg_port == 5433
     assert for_dev == 0
 
-    c.docker_file_name = str(data_dir_path / 'docker-compose-dev.yml')
+    monkeypatch.setattr(c, 'docker_file_name', str(data_dir_path / 'docker-compose-dev.yml'))
     collections, snoop_port, pg_port, for_dev = get_collections_data()
     assert collections == OrderedDict((
         ('testdata1', {'profiling': False, 'for_dev': True, 'autoindex': True, 'image': 'snoop2'}),
@@ -94,3 +100,49 @@ def test_write_collection_docker_file(data_dir_path, tmpdir):
         collection_settings = yaml.load(collection_file)
         test_settings = yaml.load(test_file)
         assert collection_settings == test_settings
+
+
+def test_write_global_docker_file(monkeypatch, data_dir_path, templates_dir_path, tmpdir):
+    monkeypatch.setattr(c, 'docker_file_name', 'docker-compose.override.yml')
+    monkeypatch.setattr(c, 'settings_dir_name', str(tmpdir / 'settings'))
+    monkeypatch.setattr(c, 'root_dir', tmpdir)
+
+    collection = 'FL1'
+    collections = OrderedDict((
+        (collection, {'profiling': False, 'for_dev': False, 'autoindex': True, 'image': 'snoop2'}),))
+    os.makedirs(os.path.join(c.settings_dir_name, collection))
+
+    write_collection_docker_file(collection, 'snoop2', os.path.join(c.settings_dir_name, collection), 45025)
+    write_global_docker_file(collections)
+    with open(str(tmpdir / c.docker_file_name)) as docker_file, \
+            open(str(data_dir_path / 'docker-compose.override-uppercase.yml')) as test_file:
+        global_settings = yaml.load(docker_file)
+        test_settings = yaml.load(test_file)
+        assert global_settings == test_settings
+
+    collection = 'fl2'
+    collections = OrderedDict((
+        (collection, {'profiling': False, 'for_dev': False, 'autoindex': True, 'image': 'snoop2'}),))
+    os.makedirs(os.path.join(c.settings_dir_name, collection))
+
+    write_collection_docker_file(collection, 'snoop2', os.path.join(c.settings_dir_name, collection), 45025)
+    write_global_docker_file(collections)
+    with open(str(tmpdir / c.docker_file_name)) as docker_file, \
+            open(str(data_dir_path / 'docker-compose.override-lowercase.yml')) as test_file:
+        global_settings = yaml.load(docker_file)
+        test_settings = yaml.load(test_file)
+        assert global_settings == test_settings
+
+    collection = 'FL3'
+    collections = OrderedDict((
+        (collection, {'profiling': False, 'for_dev': True, 'autoindex': True, 'image': 'snoop2'}),))
+    os.makedirs(os.path.join(c.settings_dir_name, collection))
+
+    write_collection_docker_file(collection, 'snoop2', os.path.join(c.settings_dir_name, collection),
+                                 45025, for_dev=True)
+    write_global_docker_file(collections, for_dev=True)
+    with open(str(tmpdir / c.docker_file_name)) as docker_file, \
+            open(str(data_dir_path / 'docker-compose.override-dev.yml')) as test_file:
+        global_settings = yaml.load(docker_file)
+        test_settings = yaml.load(test_file)
+        assert global_settings == test_settings

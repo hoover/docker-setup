@@ -3,12 +3,14 @@ from collections import OrderedDict
 from curses.ascii import isalpha
 from functools import reduce
 import os
+from pathlib import Path
 import re
 from shutil import rmtree
 
 from jinja2 import Template
 import yaml
 
+root_dir = Path(__file__).absolute().parent.parent
 collection_allowed_chars = 'a-z, A-Z, 0-9, _'
 start_snoop_port = 45025
 collections_dir_name = 'collections'
@@ -368,21 +370,25 @@ def write_global_docker_file(collections, for_dev=False):
             os.rename(docker_file_name, orig_docker_file_name)
         return
 
-    template_file = docker_file_name if not for_dev else docker_dev_file_name
+    with open(str(root_dir / new_docker_file_name), 'w') as new_docker_file:
+        new_docker_file.write('version: "3.7"\n\nservices:\n')
 
-    with open(new_docker_file_name, 'w') as new_docker_file:
+        custom_services_file_path = os.path.join(templates_dir_name, custom_services_file_name)
+        if os.path.isfile(custom_services_file_path):
+            with open(custom_services_file_path) as custom_services_file:
+                new_docker_file.write(custom_services_file.read())
+            new_docker_file.write('\n')
+
+        template_file = docker_file_name if not for_dev else docker_dev_file_name
         with open(os.path.join(templates_dir_name, template_file)) as docker_file:
-            new_docker_file.write('version: "3.7"\n\nservices:\n')
-            custom_services_file_path = os.path.join(templates_dir_name, custom_services_file_name)
-            if os.path.isfile(custom_services_file_path):
-                with open(custom_services_file_path) as custom_services_file:
-                    new_docker_file.write(custom_services_file.read())
-                new_docker_file.write('\n')
             new_docker_file.write(docker_file.read())
-            new_docker_file.write('    depends_on:\n      - ')
-            snoop_collections = '\n      - '.join(['snoop--' + c for c in collections])
-            new_docker_file.write(snoop_collections)
-        new_docker_file.write('\n')
+
+        snoop_collections = '\n      - '.join(['snoop--' + c for c in collections])
+        new_docker_file.write(f'    depends_on:\n      - {snoop_collections}')
+        snoop_aliases = ''.join([f'\n      - "snoop--{c}:snoop--{c.lower()}"' if c != c.lower()
+                                 else '' for c in collections])
+        if snoop_aliases:
+            new_docker_file.write(f'\n    links:{snoop_aliases}\n')
 
         for collection_name in collections:
             new_docker_file.write('\n')
@@ -392,6 +398,6 @@ def write_global_docker_file(collections, for_dev=False):
                 new_docker_file.write(collection_docker_file.read())
             new_docker_file.write('\n')
 
-    if os.path.isfile(docker_file_name):
-        os.rename(docker_file_name, orig_docker_file_name)
-    os.rename(new_docker_file_name, docker_file_name)
+    if os.path.isfile(str(root_dir / docker_file_name)):
+        os.rename(str(root_dir / docker_file_name), str(root_dir / orig_docker_file_name))
+    os.rename(str(root_dir / new_docker_file_name), str(root_dir / docker_file_name))
