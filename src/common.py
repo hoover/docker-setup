@@ -117,7 +117,7 @@ def get_collections_data(new_collection=None):
             if service.startswith('snoop-worker--'):
                 collection_name = service[len('snoop-worker--'):]
                 collections.setdefault(collection_name, {}).update({
-                    'autoindex': settings.get('command') == './manage.py runworkers'})
+                    'autoindex': settings.get('command', '').find('./manage.py runworkers') != -1})
 
     ordered_collections = OrderedDict(sorted(collections.items(), key=lambda t: t[0]))
 
@@ -384,11 +384,11 @@ def write_global_docker_file(collections, for_dev=False):
             new_docker_file.write(docker_file.read())
 
         snoop_collections = '\n      - '.join(['snoop--' + c for c in collections])
-        new_docker_file.write(f'    depends_on:\n      - {snoop_collections}')
-        snoop_aliases = ''.join([f'\n      - "snoop--{c}:snoop--{c.lower()}"' if c != c.lower()
+        new_docker_file.write('    depends_on:\n      - %s' % snoop_collections)
+        snoop_aliases = ''.join(['\n      - "snoop--%s:snoop--%s"' % (c, c.lower()) if c != c.lower()
                                  else '' for c in collections])
         if snoop_aliases:
-            new_docker_file.write(f'\n    links:{snoop_aliases}\n')
+            new_docker_file.write('\n    links:%s\n' % snoop_aliases)
 
         for collection_name in collections:
             new_docker_file.write('\n')
