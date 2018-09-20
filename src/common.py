@@ -371,7 +371,7 @@ def write_global_docker_file(collections, for_dev=False):
         return
 
     with open(str(root_dir / new_docker_file_name), 'w') as new_docker_file:
-        new_docker_file.write('version: "3.7"\n\nservices:\n')
+        new_docker_file.write('version: "3.3"\n\nservices:\n')
 
         custom_services_file_path = os.path.join(templates_dir_name, custom_services_file_name)
         if os.path.isfile(custom_services_file_path):
