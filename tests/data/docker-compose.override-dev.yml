@@ -1,0 +1,85 @@
+version: "3.7"
+
+services:
+  search-es:
+    environment:
+      ES_JAVA_OPTS: -Xms2g -Xmx2g
+
+  snoop-rabbitmq:
+    ports:
+      - "5672:5672"
+
+  snoop-tika:
+    ports:
+      - "9998:9998"
+
+  search-pg:
+    ports:
+      - "5432:5432"
+
+  search-es:
+    ports:
+      - "9200:9200"
+
+  ui:
+    volumes:
+      - ../ui:/opt/hoover/ui:cached
+
+  search:
+    volumes:
+      - ../search:/opt/hoover/search:cached
+    depends_on:
+      - snoop--FL3
+    links:
+      - "snoop--FL3:snoop--fl3"
+
+  snoop-pg--FL3:
+    image: postgres:9.6
+    environment:
+      POSTGRES_USER: snoop
+      POSTGRES_DATABASE: snoop
+    volumes:
+      - ./volumes/snoop-pg--FL3/data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  snoop-worker--FL3:
+    image: snoop2
+    volumes:
+      - ../snoop2:/opt/hoover/snoop:cached
+      - ./gnupg:/opt/hoover/gnupg
+      - ./collections:/opt/hoover/collections
+      - ./settings/FL3/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs/FL3:/opt/hoover/snoop/blobs
+    env_file:
+      - ./settings/FL3/snoop.env
+    depends_on:
+      - snoop-rabbitmq
+      - snoop-tika
+      - snoop-stats-es
+      - search-es
+      - snoop-pg--FL3
+    command: ./manage.py runworkers
+
+  snoop--FL3:
+    image: snoop2
+    volumes:
+      - ../snoop2:/opt/hoover/snoop:cached
+      - ./gnupg:/opt/hoover/gnupg
+      - ./collections:/opt/hoover/collections
+      - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
+      - ./settings/FL3/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs/FL3:/opt/hoover/snoop/blobs
+    ports:
+      - "45025:80"
+    env_file:
+      - ./settings/FL3/snoop.env
+    environment:
+      WAIT_HOSTS: search-es:9200, snoop-pg--FL3:5432
+      WAIT_HOSTS_TIMEOUT: 60
+    depends_on:
+      - snoop-rabbitmq
+      - snoop-tika
+      - snoop-stats-es
+      - search-es
+      - snoop-pg--FL3
