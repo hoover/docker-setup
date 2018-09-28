@@ -282,7 +282,10 @@ def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_po
         profiling_volumes = '\n      - ./%s:/opt/hoover/snoop/profiles' % \
                             os.path.join('profiles', collection) + \
                             '\n      - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py'
-    index_command = '    command: ./manage.py runworkers\n' if autoindex else ''
+    if autoindex:
+        index_command = '    command: ./manage.py runworkers\n'
+    else:
+        index_command = '    command: echo "disabled"\n'
 
     with open(os.path.join(templates_dir_name, docker_collection_file_name)) as docker_template:
         template = Template(docker_template.read())
