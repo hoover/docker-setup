@@ -1,6 +1,7 @@
 from base64 import b64encode
 from collections import OrderedDict
 from curses.ascii import isalpha
+from distutils.util import strtobool
 from functools import reduce
 import os
 from pathlib import Path
@@ -31,6 +32,10 @@ env_file_name = 'snoop.env'
 default_pg_port = 5432
 collection_exists_msg = 'Collection %s already exists!'
 default_snoop_image = 'liquidinvestigations/hoover-snoop2'
+DOCKER_HOOVER_SNOOP_SECRET_KEY = 'DOCKER_HOOVER_SNOOP_SECRET_KEY'
+DOCKER_HOOVER_SNOOP_DEBUG = 'DOCKER_HOOVER_SNOOP_DEBUG'
+DOCKER_HOOVER_SNOOP_BASE_URL = 'DOCKER_HOOVER_SNOOP_BASE_URL'
+DOCKER_HOOVER_SNOOP_STATS = 'DOCKER_HOOVER_SNOOP_STATS'
 
 
 def exit_msg(msg, *args):
@@ -196,19 +201,62 @@ def create_settings_dir(collection, ignore_exists=False):
     return settings_dir
 
 
-def write_env_file(settings_dir):
+def read_env_file(settings_dir):
+    '''Read the env file correspoding to the given collection. Returns a dictionary
+    containing the environment variables.
+
+    :param settings_dir: the directory containing the settings files
+    :return: dict
+    '''
+    env_vars = [DOCKER_HOOVER_SNOOP_SECRET_KEY, DOCKER_HOOVER_SNOOP_DEBUG,
+                DOCKER_HOOVER_SNOOP_BASE_URL, DOCKER_HOOVER_SNOOP_STATS]
+    bool_vars = [DOCKER_HOOVER_SNOOP_DEBUG, DOCKER_HOOVER_SNOOP_STATS]
+    env = {}
+    with open(os.path.join(settings_dir, env_file_name)) as env_file:
+        for line in env_file.readlines():
+            for var in env_vars:
+                if var in line:
+                    env[var] = line.split(sep='=', maxsplit=1)[1].strip()
+                    if var in bool_vars:
+                        env[var] = bool(strtobool(env[var]))
+    return env
+
+
+def write_env_file(settings_dir, env=None):
+    '''Generate the environment file in the given settings directory.
+
+    :param settings_dir: the directory containing the settings files
+    :param env: dictionary with environment variables
+    '''
+    bool_params = {DOCKER_HOOVER_SNOOP_DEBUG: False, DOCKER_HOOVER_SNOOP_STATS: False}
+    if env is None:
+        env = {}
+    for bool_param, value in bool_params.items():
+        env[bool_param] = 'on' if env.get(bool_param, value) else 'off'
+    env.setdefault(DOCKER_HOOVER_SNOOP_SECRET_KEY, b64encode(os.urandom(100)).decode('utf-8'))
+    env.setdefault(DOCKER_HOOVER_SNOOP_BASE_URL, 'http://localhost')
+
     with open(os.path.join(templates_dir_name, env_file_name)) as env_template:
         template = Template(env_template.read())
-        env_settings = template.render(secret_key=b64encode(os.urandom(100)).decode('utf-8'))
+        env_settings = template.render(env)
 
     with open(os.path.join(settings_dir, env_file_name), mode='w') as env_file:
         env_file.write(env_settings)
 
 
-def write_env_files(collections):
+def write_env_files(collections, stats_collections=[], disable_stats=None):
+    '''Generate environment files for the given collections.
+
+    :param collections: list/dictionary of collections
+    :param stats_collections: list o collections for which to enable/disable stats
+    :param disable_stats: list o collections for which to disable stats
+    '''
     for collection in collections:
         settings_dir = create_settings_dir(collection, ignore_exists=True)
-        write_env_file(settings_dir)
+        env = read_env_file(settings_dir)
+        if stats_collections and collection in stats_collections:
+            env[DOCKER_HOOVER_SNOOP_STATS] = not disable_stats
+        write_env_file(settings_dir, env)
 
 
 def write_python_settings_file(collection, settings_dir, profiling=False, for_dev=False):
