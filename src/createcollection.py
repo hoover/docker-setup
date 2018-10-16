@@ -39,6 +39,8 @@ def get_args():
                         help='Add profiling settings for the new collection.')
     parser.add_argument('-m', '--manual-indexing', action='store_const', const=True, default=False,
                         help='Do not add the option to start indexing automatically.')
+    parser.add_argument('--stats', action='store_const', const=True, default=False,
+                        help='Enable kibana stats.')
     args = parser.parse_args()
 
     validate_collection_name(args.collection)
@@ -68,7 +70,7 @@ def create_collection(args):
         write_collection_docker_file(args.collection, args.snoop_image, settings_dir,
                                      snoop_port, args.profiling, args.dev, pg_port,
                                      not args.manual_indexing)
-        write_env_file(settings_dir)
+        write_env_file(settings_dir, {'DOCKER_HOOVER_SNOOP_STATS': args.stats})
         write_python_settings_file(args.collection, settings_dir, args.profiling, args.dev)
         write_global_docker_file(ordered_collections, args.dev or bool(dev_instances))
     except Exception as e:

@@ -8,7 +8,7 @@ import yaml
 
 from src.common import get_collections_data, write_python_settings_file, \
     write_collection_docker_file, docker_collection_file_name, \
-    write_global_docker_file
+    write_global_docker_file, read_env_file, write_env_file
 import src.common as c
 
 
@@ -146,3 +146,40 @@ def test_write_global_docker_file(monkeypatch, data_dir_path, templates_dir_path
         global_settings = yaml.load(docker_file)
         test_settings = yaml.load(test_file)
         assert global_settings == test_settings
+
+
+def test_read_write_env_file(monkeypatch, data_dir_path, tmpdir):
+    env1_test = {
+        c.DOCKER_HOOVER_SNOOP_SECRET_KEY: 'secret-key===',
+        c.DOCKER_HOOVER_SNOOP_DEBUG: False,
+        c.DOCKER_HOOVER_SNOOP_BASE_URL: 'http://localhost',
+        c.DOCKER_HOOVER_SNOOP_STATS: False
+    }
+    env2_test = {
+        c.DOCKER_HOOVER_SNOOP_SECRET_KEY: 'secret-key===',
+        c.DOCKER_HOOVER_SNOOP_DEBUG: True,
+        c.DOCKER_HOOVER_SNOOP_BASE_URL: 'http://localhost',
+        c.DOCKER_HOOVER_SNOOP_STATS: True
+    }
+
+    with monkeypatch.context() as m:
+        m.setattr(c, 'env_file_name', 'snoop-1.env')
+        env1 = read_env_file(str(data_dir_path))
+        assert env1 == env1_test
+    write_env_file(str(tmpdir), env1)
+    with open(str(data_dir_path / 'snoop-1-test.env')) as env1_test_file, \
+            open(str(tmpdir / c.env_file_name)) as env_file:
+        env1_test_content = env1_test_file.read()
+        env_content = env_file.read()
+        assert env1_test_content == env_content
+
+    with monkeypatch.context() as m:
+        m.setattr(c, 'env_file_name', 'snoop-2.env')
+        env2 = read_env_file(str(data_dir_path))
+        assert env2 == env2_test
+    write_env_file(str(tmpdir), env2)
+    with open(str(data_dir_path / 'snoop-2.env')) as env2_test_file, \
+            open(str(tmpdir / c.env_file_name)) as env_file:
+        env2_test_content = env2_test_file.read()
+        env_content = env_file.read()
+        assert env2_test_content == env_content
