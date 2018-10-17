@@ -6,7 +6,7 @@ from termcolor import colored
 from src.common import get_collections_data
 
 if __name__ == '__main__':
-    collections, _, _, _ = get_collections_data()
+    collections = get_collections_data()['collections']
     for collection in collections:
         call = ['docker-compose', 'run', '--rm', 'snoop--' + collection, './manage.py',
                 'updatename', collection.lower(), collection]
