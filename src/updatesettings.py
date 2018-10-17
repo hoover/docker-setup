@@ -58,7 +58,7 @@ def read_collections_arg(add_list, remove_list, all_collections):
 
 
 def update_settings(args):
-    collections, _, _, _ = get_collections_data()
+    collections = get_collections_data()['collections']
     if len(collections):
         validate_collections(collections)
 
@@ -70,12 +70,12 @@ def update_settings(args):
                                                       collections_names)
     stats, disable_stats = read_collections_arg(args.enable_stats, args.disable_stats, collections_names)
 
-    write_env_files(collections, stats, disable_stats)
+    stats_clients = write_env_files(collections, stats, disable_stats)
     write_python_settings_files(collections, profiling, remove_profiling, for_dev, remove_dev)
-    _, dev_instances = write_collections_docker_files(collections, args.snoop_image, profiling,
-                                                      remove_profiling, for_dev, remove_dev,
-                                                      indexing, disable_indexing)
-    write_global_docker_file(collections, bool(dev_instances))
+    dev_instances = write_collections_docker_files(collections, args.snoop_image, profiling,
+                                                   remove_profiling, for_dev, remove_dev,
+                                                   indexing, disable_indexing, stats, disable_stats)
+    write_global_docker_file(collections, bool(dev_instances), bool(stats_clients))
 
     print('Restart docker-compose:')
     print('  $ docker-compose down')

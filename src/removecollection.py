@@ -6,7 +6,8 @@ import sys
 
 from src.common import get_collections_data, validate_collections, cleanup, \
     write_global_docker_file, collection_allowed_chars, validate_collection_name, \
-    volumes_dir_name, blobs_dir_name
+    volumes_dir_name, blobs_dir_name, InvalidCollectionName, exit_msg, \
+    DOCKER_HOOVER_SNOOP_STATS
 
 
 def get_args():
@@ -21,7 +22,10 @@ def get_args():
                         help='Force yes answer to all interactive user inputs.')
     args = parser.parse_args()
 
-    validate_collection_name(args.collection)
+    try:
+        validate_collection_name(args.collection)
+    except InvalidCollectionName as e:
+        exit_msg(str(e))
 
     return args
 
@@ -58,19 +62,22 @@ def remove_blobs(collection_name, force_yes=False):
 
 
 def remove_collection(args):
-    collections, _, _, dev_instances = get_collections_data()
-    if args.collection not in collections:
+    data = get_collections_data()
+    if args.collection not in data['collections']:
         print('Invalid collection %s' % args.collection)
         exit(1)
 
-    validate_collections(collections, exit_on_errors=False)
-    if dev_instances == 1 and collections[args.collection]['for_dev']:
-        dev_instances = 0
+    validate_collections(data['collections'], exit_on_errors=False)
+    if data['dev_instances'] == 1 and data['collections'][args.collection]['for_dev']:
+        data['dev_instances'] = 0
+    if data['stats_clients'] == 1 and \
+            data['collections'][args.collection]['env'][DOCKER_HOOVER_SNOOP_STATS]:
+        data['stats_clients'] = 0
 
     if not args.skip_index:
         remove_index(args.collection)
-    del collections[args.collection]
-    write_global_docker_file(collections, bool(dev_instances))
+    del data['collections'][args.collection]
+    write_global_docker_file(data['collections'], bool(data['dev_instances']), bool(data['stats_clients']))
 
     cleanup(args.collection)
     remove_pg_dir(args.collection)

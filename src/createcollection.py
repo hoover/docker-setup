@@ -8,7 +8,8 @@ from src.common import get_collections_data, validate_collections, cleanup, \
     write_global_docker_file, templates_dir_name, collection_allowed_chars, \
     validate_collection_name, validate_collection_data_dir, create_settings_dir, \
     write_collection_docker_file, volumes_dir_name, write_python_settings_file, \
-    default_snoop_image, write_env_file
+    default_snoop_image, write_env_file, InvalidCollectionName, exit_msg, \
+    DOCKER_HOOVER_SNOOP_STATS
 
 steps_file_name = 'collection-%s-steps.txt'
 
@@ -43,7 +44,10 @@ def get_args():
                         help='Enable kibana stats.')
     args = parser.parse_args()
 
-    validate_collection_name(args.collection)
+    try:
+        validate_collection_name(args.collection)
+    except InvalidCollectionName as e:
+        exit_msg(str(e))
 
     return args
 
@@ -55,24 +59,26 @@ def create_pg_dir(collection):
 
 
 def create_collection(args):
-    collections, snoop_port, pg_port, dev_instances = get_collections_data(args.collection)
-    if len(collections):
-        validate_collections(collections)
+    data = get_collections_data(args.collection)
+    if len(data['collections']):
+        validate_collections(data['collections'])
     validate_collection_data_dir(args.collection)
 
     try:
         create_pg_dir(args.collection)
         settings_dir = create_settings_dir(args.collection)
 
-        collections[args.collection] = {'profiling': args.profiling, 'for_dev': args.dev}
-        ordered_collections = OrderedDict(sorted(collections.items(), key=lambda t: t[0]))
+        data['collections'][args.collection] = {'profiling': args.profiling, 'for_dev': args.dev}
+        ordered_collections = OrderedDict(sorted(data['collections'].items(), key=lambda t: t[0]))
+
+        stats = args.stats or data['collections'].get('env', {}).get(DOCKER_HOOVER_SNOOP_STATS, False)
 
         write_collection_docker_file(args.collection, args.snoop_image, settings_dir,
-                                     snoop_port, args.profiling, args.dev, pg_port,
-                                     not args.manual_indexing)
+                                     data['snoop_port'], args.profiling, args.dev,
+                                     data['pg_port'], not args.manual_indexing, stats)
         write_env_file(settings_dir, {'DOCKER_HOOVER_SNOOP_STATS': args.stats})
         write_python_settings_file(args.collection, settings_dir, args.profiling, args.dev)
-        write_global_docker_file(ordered_collections, args.dev or bool(dev_instances))
+        write_global_docker_file(ordered_collections, args.dev or bool(data['dev_instances']), stats)
     except Exception as e:
         print('Error creating collection: %s' % e)
         cleanup(args.collection)

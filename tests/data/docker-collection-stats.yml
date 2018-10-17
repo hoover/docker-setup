@@ -18,6 +18,7 @@
     depends_on:
       - snoop-rabbitmq
       - snoop-tika
+      - snoop-stats-es
       - search-es
       - snoop-pg--testdata
     command: ./manage.py runworkers
@@ -40,5 +41,6 @@
     depends_on:
       - snoop-rabbitmq
       - snoop-tika
+      - snoop-stats-es
       - search-es
       - snoop-pg--testdata

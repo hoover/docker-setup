@@ -28,7 +28,7 @@ def print_collections(collections):
 
 
 def list_collections(args):
-    collections, _, _, _ = get_collections_data()
+    collections = get_collections_data()['collections']
     if args.json:
         print(json.dumps(collections, indent=4))
     else:
