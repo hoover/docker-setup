@@ -1,8 +1,8 @@
 import argparse
+from copy import deepcopy
 import json
 
-from src.common import get_collections_data, create_settings_dir, read_env_file, \
-    DOCKER_HOOVER_SNOOP_STATS
+from src.common import get_collections_data, DOCKER_HOOVER_SNOOP_STATS
 
 
 def get_args():
@@ -15,20 +15,32 @@ def get_args():
 def print_collections(collections):
     index = 1
     for collection, settings in collections.items():
-        settings_dir = create_settings_dir(collection, ignore_exists=True)
-        env = read_env_file(settings_dir)
-
         print('%d. %s' % (index, collection))
         print('  - profiling: %s' % settings['profiling'])
         print('  - development: %s' % settings['for_dev'])
         print('  - auto-indexing: %s' % settings['autoindex'])
         print('  - image: %s' % settings['image'])
-        print('  - stats: %s' % ('enabled' if env.get(DOCKER_HOOVER_SNOOP_STATS, False) else 'disabled'))
+        print('  - stats: %s' % settings['stats'])
+        print('  - snoop admin URL: %s' % settings['snoop_url'])
+        if 'flower_url' in settings:
+            print('  - flower URL: %s' % settings['flower_url'])
         index += 1
 
 
+def prepare_data(collections):
+    data = deepcopy(collections)
+    for settings in data.values():
+        settings['stats'] = 'enabled' if settings['env'].get(DOCKER_HOOVER_SNOOP_STATS, False) \
+            else 'disabled'
+        del settings['env']
+        settings['snoop_url'] = 'http://localhost:%d' % settings['snoop_port']
+        if 'flower_port' in settings:
+            settings['flower_url'] = 'http://localhost:%d' % settings['flower_port']
+    return data
+
+
 def list_collections(args):
-    collections = get_collections_data()['collections']
+    collections = prepare_data(get_collections_data()['collections'])
     if args.json:
         print(json.dumps(collections, indent=4))
     else:

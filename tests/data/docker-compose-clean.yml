@@ -10,6 +10,8 @@ services:
 
   snoop-worker--testdata1:
     image: snoop2
+    ports:
+      - "15555:5555"
     command: ./manage.py runworkers
 
   snoop-pg--testdata2:
@@ -23,4 +25,6 @@ services:
 
   snoop-worker--testdata2:
     image: snoop2
+    ports:
+      - "15556:5555"
     command: ./manage.py runworkers

@@ -48,10 +48,11 @@ def test_get_collections_data(monkeypatch, data_dir_path):
     data = get_collections_data()
     assert data['collections'] == OrderedDict((
         ('testdata1', {'profiling': False, 'for_dev': False, 'autoindex': True, 'image': 'snoop2',
-                       'env': env}),
+                       'env': env, 'snoop_port': 45025, 'flower_port': 15555}),
         ('testdata2', {'profiling': False, 'for_dev': False, 'autoindex': True, 'image': 'snoop2',
-                       'env': env})))
+                       'env': env, 'snoop_port': 45026, 'flower_port': 15556})))
     assert data['snoop_port'] == 45027
+    assert data['flower_port'] == 15557
     assert data['pg_port'] == 5433
     assert data['dev_instances'] == 0
     assert data['stats_clients'] == 2
@@ -60,10 +61,11 @@ def test_get_collections_data(monkeypatch, data_dir_path):
     data = get_collections_data()
     assert data['collections'] == OrderedDict((
         ('testdata1', {'profiling': True, 'for_dev': False, 'autoindex': True, 'image': 'snoop2',
-                       'env': env}),
+                       'env': env, 'snoop_port': 45025}),
         ('testdata2', {'profiling': True, 'for_dev': False, 'autoindex': True, 'image': 'snoop2',
-                       'env': env})))
+                       'env': env, 'snoop_port': 45026})))
     assert data['snoop_port'] == 45027
+    assert data['flower_port'] == 15557
     assert data['pg_port'] == 5433
     assert data['dev_instances'] == 0
     assert data['stats_clients'] == 2
@@ -72,10 +74,11 @@ def test_get_collections_data(monkeypatch, data_dir_path):
     data = get_collections_data()
     assert data['collections'] == OrderedDict((
         ('testdata1', {'profiling': False, 'for_dev': True, 'autoindex': True, 'image': 'snoop2',
-                       'env': env}),
+                       'env': env, 'snoop_port': 45025}),
         ('testdata2', {'profiling': False, 'for_dev': True, 'autoindex': True, 'image': 'snoop2',
-                       'env': env})))
+                       'env': env, 'snoop_port': 45026})))
     assert data['snoop_port'] == 45027
+    assert data['flower_port'] == 15557
     assert data['pg_port'] == 5435
     assert data['dev_instances'] == 2
     assert data['stats_clients'] == 2
@@ -110,7 +113,7 @@ def test_write_collection_docker_file(data_dir_path, tmpdir):
     snoop_image = 'snoop_image'
     tmpdir_path = str(tmpdir)
 
-    write_collection_docker_file(collection, snoop_image, tmpdir_path, 45025)
+    write_collection_docker_file(collection, snoop_image, tmpdir_path, 45025, flower_port=15555)
     with open(os.path.join(tmpdir_path, docker_collection_file_name)) as collection_file, \
             open(str(data_dir_path / 'docker-collection-clean.yml')) as test_file:
         collection_settings = yaml.load(collection_file)

@@ -15,6 +15,8 @@ import yaml
 root_dir = Path(__file__).absolute().parent.parent
 collection_allowed_chars = 'a-z, A-Z, 0-9, _'
 start_snoop_port = 45025
+default_flower_port = 5555
+start_flower_port = 15555
 collections_dir_name = 'collections'
 settings_dir_name = 'settings'
 templates_dir_name = 'templates'
@@ -92,16 +94,17 @@ def has_volume(settings, volume_local):
 def get_collections_data(new_collection_name=None):
     '''Return collections data in form of a tuple of ordered dictionary, next
     snoop available port, next postgresql available port (for development),
-    number of development instance
+    next port available for flower web admin, number of development instance
 
     :param new_collection_name: new collection name (if any)
-    :return: (OrderedDict, bool, bool, int)
+    :return: dict
     '''
     if not os.path.isfile(docker_file_name):
         return {
             'collections': {},
             'snoop_port': start_snoop_port,
             'pg_port': default_pg_port + 1,
+            'flower_port': start_flower_port,
             'dev_instances': 0,
             'stats_clients': 0
         }
@@ -109,6 +112,7 @@ def get_collections_data(new_collection_name=None):
     collections = {}
     last_snoop_port = start_snoop_port - 1
     pg_port = default_pg_port + 1
+    flower_port = start_flower_port
     dev_instances = 0
     stats_clients = 0
 
@@ -130,12 +134,18 @@ def get_collections_data(new_collection_name=None):
                     exit_msg(collection_exists_msg, new_collection_name)
 
                 port = int(settings['ports'][0].split(sep=':')[0])
+                collections[collection_name]['snoop_port'] = port
                 if port > last_snoop_port:
                     last_snoop_port = port
             if service.startswith('snoop-worker--'):
                 collection_name = service[len('snoop-worker--'):]
                 collections.setdefault(collection_name, {}).update({
                     'autoindex': settings.get('command', '').find('./manage.py runworkers') != -1})
+                if settings.get('ports'):
+                    collections[collection_name]['flower_port'] = int(settings['ports'][0].split(':')[0])
+                    if collections[collection_name]['flower_port'] > flower_port:
+                        flower_port = collections[collection_name]['flower_port']
+                flower_port += 1
 
     for collection_name in collections:
         collections[collection_name]['env'] = read_env_file(get_settings_dir(collection_name))
@@ -148,6 +158,7 @@ def get_collections_data(new_collection_name=None):
         'collections': ordered_collections,
         'snoop_port': last_snoop_port + 1,
         'pg_port': pg_port,
+        'flower_port': flower_port,
         'dev_instances': dev_instances,
         'stats_clients': stats_clients
     }
@@ -348,7 +359,7 @@ def write_python_settings_files(collections, profiling_collections=None, remove_
 
 def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_port,
                                  profiling=False, for_dev=False, pg_port=None,
-                                 autoindex=True, stats=False):
+                                 autoindex=True, stats=False, flower_port=None):
     '''Generate the corresponding collection docker file using the docker template.
 
     :param collection: the collection name
@@ -360,6 +371,7 @@ def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_po
     :param pg_port: the port on which the postgresql database is exposed if for_dev enabled
     :param autoindex: if true add the command to automatically index the collection
     :param stats: if true add dependency on snoop-stats-es container
+    :param flower_port: the port on which the flower admin UI is exposed
     '''
     dev_volumes = '\n      - ../snoop2:/opt/hoover/snoop:cached' if for_dev else ''
     pg_port = pg_port if pg_port else default_pg_port + 1
@@ -375,6 +387,10 @@ def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_po
     else:
         index_command = '    command: echo "disabled"\n'
     snoop_stats = '\n      - snoop-stats-es' if stats else ''
+    if flower_port:
+        flower_port_text = '    ports:\n      - "%d:%d"\n' % (flower_port, default_flower_port)
+    else:
+        flower_port_text = ''
 
     with open(os.path.join(templates_dir_name, docker_collection_file_name)) as docker_template:
         template = Template(docker_template.read())
@@ -385,7 +401,8 @@ def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_po
                                               dev_volumes=dev_volumes,
                                               dev_ports=dev_ports,
                                               index_command=index_command,
-                                              snoop_stats=snoop_stats)
+                                              snoop_stats=snoop_stats,
+                                              flower_port=flower_port_text)
 
     with open(os.path.join(settings_dir, docker_collection_file_name), mode='w') \
             as collection_file:
@@ -394,17 +411,21 @@ def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_po
 
 def read_collection_docker_file(collection, settings_dir):
     '''Read the docker file correspoding to the given collection. Returns the coolection
-    snoop image and the snoop web admin port exposed by docker.
+    snoop image, the snoop web admin port exposed by docker and the flower web admin port.
 
     :param collection: the collection name
     :param settings_dir: the directory containing the settings files
-    :return: (str, int)
+    :return: (str, int, int)
     '''
     with open(os.path.join(settings_dir, docker_collection_file_name)) as collection_file:
         settings = yaml.load(collection_file)
         snoop_image = settings['snoop-worker--' + collection]['image']
         snoop_port = int(settings['snoop--' + collection]['ports'][0].split(sep=':')[0])
-        return snoop_image, snoop_port
+        if 'ports' in settings['snoop-worker--' + collection]:
+            flower_port = int(settings['snoop-worker--' + collection]['ports'][0].split(sep=':')[0])
+        else:
+            flower_port = None
+        return snoop_image, snoop_port, flower_port
 
 
 def write_collections_docker_files(collections, snoop_image=None, profiling_collections=None,
@@ -426,13 +447,14 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
     :return: int
     '''
     pg_port = default_pg_port + 1
+    next_flower_port = start_flower_port
     dev_instances = 0
 
     for collection, settings in collections.items():
         validate_collection_data_dir(collection)
 
         settings_dir = create_settings_dir(collection, ignore_exists=True)
-        orig_snoop_image, snoop_port = read_collection_docker_file(collection, settings_dir)
+        orig_snoop_image, snoop_port, flower_port = read_collection_docker_file(collection, settings_dir)
         updated_snoop_image = snoop_image if snoop_image else orig_snoop_image
         if remove_profiling:
             profiling = not collection_selected(collection, profiling_collections) and settings['profiling']
@@ -454,9 +476,11 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
             stats = collection_selected(collection, stats_collections) or \
                 settings['env'].get(DOCKER_HOOVER_SNOOP_STATS, False)
 
+        next_flower_port = flower_port if flower_port else next_flower_port
         write_collection_docker_file(collection, updated_snoop_image, settings_dir, snoop_port,
-                                     profiling, for_dev, pg_port, indexing, stats)
+                                     profiling, for_dev, pg_port, indexing, stats, next_flower_port)
         pg_port += 1
+        next_flower_port += 1
     return dev_instances
 
 
