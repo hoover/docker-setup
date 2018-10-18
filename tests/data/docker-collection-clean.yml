@@ -20,6 +20,8 @@
       - snoop-tika
       - search-es
       - snoop-pg--testdata
+    ports:
+      - "15555:5555"
     command: ./manage.py runworkers
 
   snoop--testdata:
