@@ -1,0 +1,73 @@
+version: "3.3"
+
+services:
+  snoop-stats-es:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: '-Xms512m -Xmx512m'
+    ulimits: {memlock: {soft: -1, hard: -1}}
+    volumes:
+      - snoop-stats-es-data:/usr/share/elasticsearch/data
+
+  snoop-stats-kibana:
+    image: docker.elastic.co/kibana/kibana-oss:6.2.2
+    depends_on:
+      - snoop-stats-es
+    environment:
+      ELASTICSEARCH_URL: 'http://snoop-stats-es:9200'
+    ports:
+      - "45022:5601"
+
+  search:
+    depends_on:
+      - snoop--FL3
+    links:
+      - "snoop--FL3:snoop--fl3"
+
+  snoop-pg--FL3:
+    image: postgres:9.6
+    environment:
+      POSTGRES_USER: snoop
+      POSTGRES_DATABASE: snoop
+    volumes:
+      - ./volumes/snoop-pg--FL3/data:/var/lib/postgresql/data
+
+  snoop-worker--FL3:
+    image: snoop2
+    volumes:
+      - ./gnupg:/opt/hoover/gnupg
+      - ./collections:/opt/hoover/collections
+      - ./settings/FL3/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs/FL3:/opt/hoover/snoop/blobs
+    env_file:
+      - ./settings/FL3/snoop.env
+    depends_on:
+      - snoop-rabbitmq
+      - snoop-tika
+      - snoop-stats-es
+      - search-es
+      - snoop-pg--FL3
+    command: ./manage.py runworkers
+
+  snoop--FL3:
+    image: snoop2
+    volumes:
+      - ./gnupg:/opt/hoover/gnupg
+      - ./collections:/opt/hoover/collections
+      - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
+      - ./settings/FL3/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs/FL3:/opt/hoover/snoop/blobs
+    ports:
+      - "45025:80"
+    env_file:
+      - ./settings/FL3/snoop.env
+    environment:
+      WAIT_HOSTS: search-es:9200, snoop-pg--FL3:5432
+      WAIT_HOSTS_TIMEOUT: 60
+    depends_on:
+      - snoop-rabbitmq
+      - snoop-tika
+      - snoop-stats-es
+      - search-es
+      - snoop-pg--FL3

@@ -17,11 +17,10 @@
       - ./settings/{{ collection_name }}/snoop.env
     depends_on:
       - snoop-rabbitmq
-      - snoop-tika
-      - snoop-stats-es
+      - snoop-tika{{ snoop_stats }}
       - search-es
       - snoop-pg--{{ collection_name }}
-
+{{ flower_port }}{{ index_command }}
   snoop--{{ collection_name }}:
     image: {{ snoop_image }}
     volumes:{{ dev_volumes }}{{ profiling_volumes }}
@@ -39,7 +38,6 @@
       WAIT_HOSTS_TIMEOUT: 60
     depends_on:
       - snoop-rabbitmq
-      - snoop-tika
-      - snoop-stats-es
+      - snoop-tika{{ snoop_stats }}
       - search-es
       - snoop-pg--{{ collection_name }}

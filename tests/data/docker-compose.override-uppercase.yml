@@ -1,0 +1,53 @@
+version: "3.3"
+
+services:
+  search:
+    depends_on:
+      - snoop--FL1
+    links:
+      - "snoop--FL1:snoop--fl1"
+
+  snoop-pg--FL1:
+    image: postgres:9.6
+    environment:
+      POSTGRES_USER: snoop
+      POSTGRES_DATABASE: snoop
+    volumes:
+      - ./volumes/snoop-pg--FL1/data:/var/lib/postgresql/data
+
+  snoop-worker--FL1:
+    image: snoop2
+    volumes:
+      - ./gnupg:/opt/hoover/gnupg
+      - ./collections:/opt/hoover/collections
+      - ./settings/FL1/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs/FL1:/opt/hoover/snoop/blobs
+    env_file:
+      - ./settings/FL1/snoop.env
+    depends_on:
+      - snoop-rabbitmq
+      - snoop-tika
+      - search-es
+      - snoop-pg--FL1
+    command: ./manage.py runworkers
+
+  snoop--FL1:
+    image: snoop2
+    volumes:
+      - ./gnupg:/opt/hoover/gnupg
+      - ./collections:/opt/hoover/collections
+      - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
+      - ./settings/FL1/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs/FL1:/opt/hoover/snoop/blobs
+    ports:
+      - "45025:80"
+    env_file:
+      - ./settings/FL1/snoop.env
+    environment:
+      WAIT_HOSTS: search-es:9200, snoop-pg--FL1:5432
+      WAIT_HOSTS_TIMEOUT: 60
+    depends_on:
+      - snoop-rabbitmq
+      - snoop-tika
+      - search-es
+      - snoop-pg--FL1

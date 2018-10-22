@@ -4,13 +4,27 @@ services:
       - ./volumes/snoop-pg--testdata1/data:/var/lib/postgresql/data
 
   snoop--testdata1:
+    image: snoop2
     ports:
       - "45025:80"
+
+  snoop-worker--testdata1:
+    image: snoop2
+    ports:
+      - "15555:5555"
+    command: ./manage.py runworkers
 
   snoop-pg--testdata2:
     volumes:
       - ./volumes/snoop-pg--testdata2/data:/var/lib/postgresql/data
 
   snoop--testdata2:
+    image: snoop2
     ports:
       - "45026:80"
+
+  snoop-worker--testdata2:
+    image: snoop2
+    ports:
+      - "15556:5555"
+    command: ./manage.py runworkers
