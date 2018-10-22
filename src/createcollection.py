@@ -73,9 +73,9 @@ def create_collection(args):
 
         stats = args.stats or data['collections'].get('env', {}).get(DOCKER_HOOVER_SNOOP_STATS, False)
 
-        write_collection_docker_file(args.collection, args.snoop_image, settings_dir,
-                                     data['snoop_port'], args.profiling, args.dev,
-                                     data['pg_port'], not args.manual_indexing, stats)
+        write_collection_docker_file(args.collection, args.snoop_image, settings_dir, data['snoop_port'],
+                                     args.profiling, args.dev, data['pg_port'], not args.manual_indexing,
+                                     stats, data['flower_port'])
         write_env_file(settings_dir, {'DOCKER_HOOVER_SNOOP_STATS': args.stats})
         write_python_settings_file(args.collection, settings_dir, args.profiling, args.dev)
         write_global_docker_file(ordered_collections, args.dev or bool(data['dev_instances']), stats)
