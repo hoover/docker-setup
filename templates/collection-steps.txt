@@ -9,11 +9,8 @@ Follow the steps below to finish the collection creation:
 3. Run the following command to create the data model:
   $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py migrate
 
-4. Optional, reset all existing stats in the ES index used by Kibana:
-  $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py resetstatsindex
-
-5. Create collection within Snoop:
+4. Create collection within Snoop:
   $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py createcollection {{ collection_name }} /opt/hoover/collections/{{ collection_name }}
 
-6. Add the collection to search (--public is optional):
+5. Add the collection to search (--public is optional):
   $ docker-compose run --rm search ./manage.py addcollection {{ collection_name }} --index {{ collection_index }} http://snoop--{{ collection_name }}/collections/{{ collection_name }}/json --public
