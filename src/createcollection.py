@@ -14,6 +14,7 @@ from src.common import get_collections_data, validate_collections, cleanup, \
 steps_file_name = 'collection-%s-steps.txt'
 steps_script_name = 'collection-%s-steps.sh'
 
+
 def write_instructions(args):
     with open(os.path.join(templates_dir_name, 'collection-steps.txt')) as steps_template:
         template = Template(steps_template.read())
@@ -29,8 +30,7 @@ def write_instructions(args):
 
     with open(os.path.join(templates_dir_name, 'collection-steps.sh')) as script_template:
         template = Template(script_template.read())
-        script = template.render(collection_name=args.collection,
-                                collection_index=str.lower(args.collection))
+        script = template.render(collection_name=args.collection, collection_index=str.lower(args.collection))
 
     collection_steps_script_name = steps_script_name % '%s' % args.collection
     with open(collection_steps_script_name, mode='w') as script_file:
