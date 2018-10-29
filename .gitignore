@@ -13,6 +13,7 @@
 __pycache__
 *.pyc
 /collection*.txt
+/collection*.sh
 /settings/*/
 /settings/*-testing.py
 /.python-version

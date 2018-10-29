@@ -78,5 +78,4 @@ def update_settings(args):
     write_global_docker_file(collections, bool(dev_instances), bool(stats_clients))
 
     print('Restart docker-compose:')
-    print('  $ docker-compose down')
-    print('  $ docker-compose up -d')
+    print('  $ docker-compose down && docker-compose up -d')
