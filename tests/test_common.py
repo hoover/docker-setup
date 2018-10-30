@@ -1,7 +1,9 @@
 from collections import OrderedDict
+from contextlib import contextmanager
 import os
 from pathlib import Path
 import re
+from shutil import copytree
 
 import pytest
 import yaml
@@ -9,7 +11,9 @@ import yaml
 from src.common import get_collections_data, write_python_settings_file, \
     write_collection_docker_file, docker_collection_file_name, \
     write_global_docker_file, read_env_file, write_env_file, \
-    InvalidCollectionName, validate_collection_name
+    InvalidCollectionName, validate_collection_name, \
+    write_collections_docker_files, read_collection_docker_file, \
+    settings_dir_name
 import src.common as c
 
 
@@ -21,6 +25,14 @@ def data_dir_path():
 @pytest.fixture
 def templates_dir_path():
     return Path(__file__).absolute().parent.parent / 'templates'
+
+
+@contextmanager
+def chdir(new_path):
+    currdir = os.getcwd()
+    os.chdir(new_path)
+    yield
+    os.chdir(currdir)
 
 
 def test_validate_collection_name():
@@ -232,3 +244,26 @@ def test_read_write_env_file(monkeypatch, data_dir_path, tmpdir):
         env2_test_content = env2_test_file.read()
         env_content = env_file.read()
         assert env2_test_content == env_content
+
+
+def test_write_collections_docker_files(monkeypatch, data_dir_path, tmpdir):
+    monkeypatch.setattr(c, 'templates_dir_name', str(data_dir_path.parent.parent / 'templates'))
+    monkeypatch.setattr(c, 'validate_collection_data_dir', lambda _: True)
+    collections_settings = {
+        'testdata1': {'image': 'snoop2', 'snoop_port': 45025, 'flower_port': 15555},
+        'testdata2': {'image': 'liquidinvestigations/hoover-snoop2', 'snoop_port': 45026,
+                      'flower_port': 15556},
+    }
+
+    with chdir(str(data_dir_path / 'collections')):
+        data = get_collections_data()
+
+    copytree(str(data_dir_path / 'collections'), str(tmpdir / 'collections'))
+    with chdir(str(tmpdir / 'collections')):
+        write_collections_docker_files(data['collections'])
+        for collection in data['collections']:
+            settings_dir = str(tmpdir / 'collections' / settings_dir_name / collection)
+            image, snoop_port, flower_port = read_collection_docker_file(collection, settings_dir)
+            assert image == collections_settings[collection]['image']
+            assert snoop_port == collections_settings[collection]['snoop_port']
+            assert flower_port == collections_settings[collection]['flower_port']

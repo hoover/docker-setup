@@ -447,8 +447,11 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
     :return: int
     '''
     pg_port = default_pg_port + 1
+    next_snoop_port = start_snoop_port
     next_flower_port = start_flower_port
     dev_instances = 0
+    flower_ports = set()
+    snoop_ports = set()
 
     for collection, settings in collections.items():
         validate_collection_data_dir(collection)
@@ -456,6 +459,7 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
         settings_dir = create_settings_dir(collection, ignore_exists=True)
         orig_snoop_image, snoop_port, flower_port = read_collection_docker_file(collection, settings_dir)
         updated_snoop_image = snoop_image if snoop_image else orig_snoop_image
+
         if remove_profiling:
             profiling = not collection_selected(collection, profiling_collections) and settings['profiling']
         else:
@@ -476,11 +480,21 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
             stats = collection_selected(collection, stats_collections) or \
                 settings['env'].get(DOCKER_HOOVER_SNOOP_STATS, False)
 
-        next_flower_port = flower_port if flower_port else next_flower_port
-        write_collection_docker_file(collection, updated_snoop_image, settings_dir, snoop_port,
+        if flower_port and flower_port not in flower_ports:
+            next_flower_port = flower_port
+        else:
+            next_flower_port += 1
+        flower_ports.add(next_flower_port)
+
+        if snoop_port and snoop_port not in snoop_ports:
+            next_snoop_port = snoop_port
+        else:
+            next_snoop_port += 1
+        snoop_ports.add(next_snoop_port)
+
+        write_collection_docker_file(collection, updated_snoop_image, settings_dir, next_snoop_port,
                                      profiling, for_dev, pg_port, indexing, stats, next_flower_port)
         pg_port += 1
-        next_flower_port += 1
     return dev_instances
 
 
