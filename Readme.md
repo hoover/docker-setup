@@ -348,6 +348,34 @@ docker-compose run --rm snoop ./manage.py createcollection foo /opt/hoover/colle
 docker-compose run --rm search ./manage.py addcollection foo http://snoop/collections/foo/json --public
 ```
 
+### Monitoring snoop workers
+Collections for which automatic indexing was enabled can be monitored using the
+[flower](https://flower.readthedocs.io/en/latest/) tool. Run `./listcollections`
+to see the settings for all collections. If the automatic indexing was enabled
+then in the output an URL to the flower tool will be printed. The output should
+look like this:
+```1. FL15
+  - profiling: False
+  - development: False
+  - auto-indexing: True
+  - image: liquidinvestigations/hoover-snoop2
+  - stats: disabled
+  - snoop admin URL: http://localhost:45025
+  - flower URL: http://localhost:15555
+```
+
+### Disable/enable kibana stats
+By default kibana stats are disabled when creating a new collection. They can be
+enabled/disabled using `./updatesettings`:
+```./updatesettings --enable-stats [<collection1>, <collection2>..]
+./updatesettings --disable-stats [<collection1>, <collection2>..]
+```
+The list of collections is optional. If no list was supplied then all collections
+will have kibana enabled/disabled.
+
+Kibana stats can also be enabled at collection cretion time:
+```./createcollection -c <collection> --stats
+```
 
 ### Exporting and importing collections
 Snoop2 provides commands to export and import collection database records,

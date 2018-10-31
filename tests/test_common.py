@@ -250,9 +250,9 @@ def test_write_collections_docker_files(monkeypatch, data_dir_path, tmpdir):
     monkeypatch.setattr(c, 'templates_dir_name', str(data_dir_path.parent.parent / 'templates'))
     monkeypatch.setattr(c, 'validate_collection_data_dir', lambda _: True)
     collections_settings = {
-        'testdata1': {'image': 'snoop2', 'snoop_port': 45025, 'flower_port': 15555},
+        'testdata1': {'image': 'snoop2', 'snoop_port': 45025, 'flower_port': None},
         'testdata2': {'image': 'liquidinvestigations/hoover-snoop2', 'snoop_port': 45026,
-                      'flower_port': 15556},
+                      'flower_port': 15555},
     }
 
     with chdir(str(data_dir_path / 'collections')):

@@ -22,7 +22,7 @@ def print_collections(collections):
         print('  - image: %s' % settings['image'])
         print('  - stats: %s' % settings['stats'])
         print('  - snoop admin URL: %s' % settings['snoop_url'])
-        if 'flower_url' in settings:
+        if settings['autoindex'] and 'flower_url' in settings:
             print('  - flower URL: %s' % settings['flower_url'])
         index += 1
 

@@ -480,11 +480,15 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
             stats = collection_selected(collection, stats_collections) or \
                 settings['env'].get(DOCKER_HOOVER_SNOOP_STATS, False)
 
-        if flower_port and flower_port not in flower_ports:
-            next_flower_port = flower_port
+        if indexing:
+            if flower_port and flower_port not in flower_ports:
+                next_flower_port = flower_port
+            else:
+                flower_port = next_flower_port
+                next_flower_port += 1
+            flower_ports.add(flower_port)
         else:
-            next_flower_port += 1
-        flower_ports.add(next_flower_port)
+            flower_port = None
 
         if snoop_port and snoop_port not in snoop_ports:
             next_snoop_port = snoop_port
@@ -493,7 +497,7 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
         snoop_ports.add(next_snoop_port)
 
         write_collection_docker_file(collection, updated_snoop_image, settings_dir, next_snoop_port,
-                                     profiling, for_dev, pg_port, indexing, stats, next_flower_port)
+                                     profiling, for_dev, pg_port, indexing, stats, flower_port)
         pg_port += 1
     return dev_instances
 
