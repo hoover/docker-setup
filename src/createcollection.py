@@ -12,6 +12,7 @@ from src.common import get_collections_data, validate_collections, cleanup, \
     DOCKER_HOOVER_SNOOP_STATS
 
 steps_file_name = 'collection-%s-steps.txt'
+steps_script_name = 'collection-%s-steps.sh'
 
 
 def write_instructions(args):
@@ -25,7 +26,18 @@ def write_instructions(args):
         steps_file.write(steps)
 
     print(open(collection_steps_file_name).read())
-    print('\nThe steps above are described in "%s"' % collection_steps_file_name)
+    print('\nThe steps above are described in "%s" OR' % collection_steps_file_name)
+
+    with open(os.path.join(templates_dir_name, 'collection-steps.sh')) as script_template:
+        template = Template(script_template.read())
+        script = template.render(collection_name=args.collection, collection_index=str.lower(args.collection))
+
+    collection_steps_script_name = steps_script_name % '%s' % args.collection
+    with open(collection_steps_script_name, mode='w') as script_file:
+        script_file.write(script)
+        os.chmod(collection_steps_script_name, 0o750)
+
+    print('\nExecute script ./%s' % collection_steps_script_name)
 
 
 def get_args():

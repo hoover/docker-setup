@@ -1,0 +1,129 @@
+version: "3.3"
+
+services:
+  snoop-rabbitmq:
+    ports:
+      - "5672:5672"
+
+  snoop-tika:
+    ports:
+      - "9998:9998"
+
+  search-pg:
+    ports:
+      - "5432:5432"
+
+  search-es:
+    ports:
+      - "9200:9200"
+
+  ui:
+    volumes:
+      - ../ui:/opt/hoover/ui:cached
+
+  search:
+    volumes:
+      - ../search:/opt/hoover/search:cached
+    depends_on:
+      - snoop--testdata1
+      - snoop--testdata2
+    links:
+      - "snoop--testdata1:snoop--testdata1"
+
+  snoop-pg--testdata1:
+    image: postgres:9.6
+    environment:
+      POSTGRES_USER: snoop
+      POSTGRES_DATABASE: snoop
+    volumes:
+      - ./volumes/snoop-pg--testdata1/data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  snoop-worker--testdata1:
+    image: snoop2
+    volumes:
+      - ../snoop2:/opt/hoover/snoop:cached
+      - ./gnupg:/opt/hoover/gnupg
+      - ./collections:/opt/hoover/collections
+      - ./settings/testdata1/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs/testdata1:/opt/hoover/snoop/blobs
+    env_file:
+      - ./settings/testdata1/snoop.env
+    depends_on:
+      - snoop-rabbitmq
+      - snoop-tika
+      - search-es
+      - snoop-pg--testdata1
+    ports:
+      - "15555:5555"
+    command: echo "disabled"
+
+  snoop--testdata1:
+    image: snoop2
+    volumes:
+      - ../snoop2:/opt/hoover/snoop:cached
+      - ./gnupg:/opt/hoover/gnupg
+      - ./collections:/opt/hoover/collections
+      - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
+      - ./settings/testdata1/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs/testdata1:/opt/hoover/snoop/blobs
+    ports:
+      - "45025:80"
+    env_file:
+      - ./settings/testdata1/snoop.env
+    environment:
+      WAIT_HOSTS: search-es:9200, snoop-pg--testdata1:5432
+      WAIT_HOSTS_TIMEOUT: 60
+    depends_on:
+      - snoop-rabbitmq
+      - snoop-tika
+      - search-es
+      - snoop-pg--testdata1
+
+  snoop-pg--testdata2:
+    image: postgres:9.6
+    environment:
+      POSTGRES_USER: snoop
+      POSTGRES_DATABASE: snoop
+    volumes:
+      - ./volumes/snoop-pg--testdata2/data:/var/lib/postgresql/data
+
+  snoop-worker--testdata2:
+    image: liquidinvestigations/hoover-snoop2
+    volumes:
+      - ./gnupg:/opt/hoover/gnupg
+      - ./collections:/opt/hoover/collections
+      - ./settings/testdata2/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs/testdata2:/opt/hoover/snoop/blobs
+    env_file:
+      - ./settings/testdata2/snoop.env
+    depends_on:
+      - snoop-rabbitmq
+      - snoop-tika
+      - search-es
+      - snoop-pg--testdata2
+    ports:
+      - "15555:5555"
+    command: ./manage.py runworkers
+
+  snoop--testdata2:
+    image: liquidinvestigations/hoover-snoop2
+    volumes:
+      - ./gnupg:/opt/hoover/gnupg
+      - ./collections:/opt/hoover/collections
+      - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
+      - ./settings/testdata2/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
+      - ./snoop-blobs/testdata2:/opt/hoover/snoop/blobs
+    ports:
+      - "45025:80"
+    env_file:
+      - ./settings/testdata2/snoop.env
+    environment:
+      WAIT_HOSTS: search-es:9200, snoop-pg--testdata2:5432
+      WAIT_HOSTS_TIMEOUT: 60
+    depends_on:
+      - snoop-rabbitmq
+      - snoop-tika
+      - search-es
+      - snoop-pg--testdata2
