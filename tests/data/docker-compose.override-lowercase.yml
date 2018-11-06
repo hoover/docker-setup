@@ -17,7 +17,7 @@ services:
     image: snoop2
     volumes:
       - ./gnupg:/opt/hoover/gnupg
-      - ./collections:/opt/hoover/collections
+      - ./collections/fl2:/opt/hoover/snoop/collection
       - ./settings/fl2/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/fl2:/opt/hoover/snoop/blobs
     env_file:
@@ -33,7 +33,7 @@ services:
     image: snoop2
     volumes:
       - ./gnupg:/opt/hoover/gnupg
-      - ./collections:/opt/hoover/collections
+      - ./collections/fl2:/opt/hoover/snoop/collection
       - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
       - ./settings/fl2/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/fl2:/opt/hoover/snoop/blobs

@@ -1,6 +1,6 @@
+from distutils.util import strtobool
 import os
 from urllib.parse import urlparse
-from distutils.util import strtobool
 
 from .defaultsettings import *
 
@@ -35,4 +35,8 @@ SNOOP_COLLECTIONS_ELASTICSEARCH_URL = 'http://search-es:9200'
 SNOOP_GNUPG_HOME = '/opt/hoover/gnupg'
 
 TASK_PREFIX = '{{ collection_name }}'
+
+SNOOP_COLLECTIONS_ELASTICSEARCH_INDEX = '{{ collection_index }}'
+
+SNOOP_COLLECTION_ROOT = 'collection'
 

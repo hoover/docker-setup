@@ -10,7 +10,7 @@
     image: snoop_image
     volumes:
       - ./gnupg:/opt/hoover/gnupg
-      - ./collections:/opt/hoover/collections
+      - ./collections/testdata:/opt/hoover/snoop/collection
       - ./settings/testdata/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/testdata:/opt/hoover/snoop/blobs
     env_file:
@@ -28,7 +28,7 @@
     image: snoop_image
     volumes:
       - ./gnupg:/opt/hoover/gnupg
-      - ./collections:/opt/hoover/collections
+      - ./collections/testdata:/opt/hoover/snoop/collection
       - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
       - ./settings/testdata/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/testdata:/opt/hoover/snoop/blobs

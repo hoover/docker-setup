@@ -69,8 +69,12 @@ def validate_collection_name(collection_name):
         raise InvalidCollectionName('The first character must be a letter.')
 
 
+def get_collection_data_dir(collection_name):
+    return os.path.join(collections_dir_name, collection_name)
+
+
 def validate_collection_data_dir(collection_name):
-    data_dir = os.path.join(collections_dir_name, collection_name)
+    data_dir = get_collection_data_dir(collection_name)
     if not os.path.isdir(data_dir):
         print('Collection %s does not have a data directory (%s)' % (collection_name, data_dir))
         exit(1)
@@ -318,7 +322,9 @@ def write_python_settings_file(collection, settings_dir, profiling=False, for_de
     '''
     with open(os.path.join(templates_dir_name, snoop_settings_file_name)) as settings_template:
         template = Template(settings_template.read())
-        snoop_settings = template.render(collection_name=collection)
+        snoop_settings = template.render(collection_name=collection,
+                                         collection_index=collection.lower(),
+                                         collection_root=get_collection_data_dir(collection))
     if profiling:
         with open(os.path.join(templates_dir_name, snoop_settings_profiling_file_name)) as \
                 profiling_template:

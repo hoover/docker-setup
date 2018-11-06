@@ -10,7 +10,7 @@
     image: liquidinvestigations/hoover-snoop2
     volumes:
       - ./gnupg:/opt/hoover/gnupg
-      - ./collections:/opt/hoover/collections
+      - ./collections/testdata2:/opt/hoover/snoop/collection
       - ./settings/testdata2/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/testdata2:/opt/hoover/snoop/blobs
     env_file:
@@ -28,7 +28,7 @@
     image: liquidinvestigations/hoover-snoop2
     volumes:
       - ./gnupg:/opt/hoover/gnupg
-      - ./collections:/opt/hoover/collections
+      - ./collections/testdata2:/opt/hoover/snoop/collection
       - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
       - ./settings/testdata2/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/testdata2:/opt/hoover/snoop/blobs

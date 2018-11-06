@@ -9,8 +9,8 @@ Follow the steps below to finish the collection creation:
 3. Run the following command to create the data model:
   $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py migrate
 
-4. Create collection within Snoop:
-  $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py createcollection {{ collection_name }} /opt/hoover/collections/{{ collection_name }}
+4. Dispatch tasks in Snoop:
+  $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py rundispatcher
 
 5. Add the collection to search (--public is optional):
   $ docker-compose run --rm search ./manage.py addcollection {{ collection_name }} --index {{ collection_index }} http://snoop--{{ collection_name }}/collections/{{ collection_name }}/json --public
