@@ -13,7 +13,7 @@
     volumes:
       - ../snoop2:/opt/hoover/snoop:cached
       - ./gnupg:/opt/hoover/gnupg
-      - ./collections:/opt/hoover/collections
+      - ./collections/testdata1:/opt/hoover/snoop/collection
       - ./settings/testdata1/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/testdata1:/opt/hoover/snoop/blobs
     env_file:
@@ -32,7 +32,7 @@
     volumes:
       - ../snoop2:/opt/hoover/snoop:cached
       - ./gnupg:/opt/hoover/gnupg
-      - ./collections:/opt/hoover/collections
+      - ./collections/testdata1:/opt/hoover/snoop/collection
       - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
       - ./settings/testdata1/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/testdata1:/opt/hoover/snoop/blobs
