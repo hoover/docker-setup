@@ -13,4 +13,4 @@ Follow the steps below to finish the collection creation:
   $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py rundispatcher
 
 5. Add the collection to search (--public is optional):
-  $ docker-compose run --rm search ./manage.py addcollection {{ collection_name }} --index {{ collection_index }} http://snoop--{{ collection_name }}/collections/{{ collection_name }}/json --public
+  $ docker-compose run --rm search ./manage.py addcollection {{ collection_name }} --index {{ collection_index }} http://snoop--{{ collection_name }}/collection/json --public

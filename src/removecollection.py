@@ -38,7 +38,7 @@ def remove_pg_dir(collection):
 
 def remove_index(collection_name):
     docker_args = ['docker-compose', 'run', '--rm', 'snoop--%s' % collection_name, './manage.py',
-                   'deletecollection', collection_name]
+                   'deleteindex']
     process = run(docker_args, stdout=sys.stdout, stderr=sys.stderr)
     if process.returncode != 0:
         print('Error removing %s index' % collection_name)
