@@ -1,0 +1,8 @@
+site_name: Hoover
+theme: readthedocs
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Usage: usage.md
+  - Collections: collections.md
+  - Development: development.md
