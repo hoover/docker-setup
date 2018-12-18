@@ -6,11 +6,14 @@ Follow the steps below to finish the collection creation:
 2. Run this command to wait for PostgreSQL startup:
   $ docker-compose run --rm snoop--{{ collection_name }} /wait
 
-3. Run the following command to create the data model:
+3. Run the following command to update search models:
+  $ docker-compose run --rm search ./manage.py migrate
+
+4. Run the following command to create the data model:
   $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py migrate
 
-4. Dispatch tasks in Snoop:
+5. Dispatch tasks in Snoop:
   $ docker-compose run --rm snoop--{{ collection_name }} ./manage.py rundispatcher
 
-5. Add the collection to search (--public is optional):
+6. Add the collection to search (--public is optional):
   $ docker-compose run --rm search ./manage.py addcollection {{ collection_name }} --index {{ collection_index }} http://snoop--{{ collection_name }}/collection/json --public
