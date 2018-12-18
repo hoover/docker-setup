@@ -1,0 +1,26 @@
+#!/bin/bash
+
+confirm() {
+    read -p "Are you sure you want to remove all collections? (yes/no) " confirmation
+    confirmation=`echo "$confirmation" | tr '[:upper:]' '[:lower:]'`
+    if [ "$confirmation" != "yes" ]; then
+        echo "Exiting without resetting."
+        exit
+    fi
+}
+
+confirm
+confirm
+
+rm -fr ./volumes
+for file in ./settings/*; do
+    if [ -d "$file" ]; then
+        rm -fr "$file"
+    fi
+done
+rm -f ./docker-compose.override.yml
+
+mkdir -p volumes volumes/metrics volumes/metrics/users volumes/search-es-snapshots volumes/search-es/data collections
+chmod 777 volumes/search-es-snapshots volumes/search-es/data
+
+echo "DONE"
