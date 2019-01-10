@@ -9,6 +9,8 @@ echo "Updating search models..."
 docker-compose run --rm search ./manage.py migrate
 echo "Creating the data model..."
 docker-compose run --rm snoop--{{ collection_name }} ./manage.py migrate
+echo "Create collection index..."
+docker-compose run --rm snoop--{{ collection_name }} ./manage.py resetcollectionindex
 echo "Dispatching tasks in Snoop..."
 docker-compose run --rm snoop--{{ collection_name }} ./manage.py rundispatcher
 echo "Adding the collection to search..."
