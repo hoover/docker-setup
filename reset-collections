@@ -19,6 +19,7 @@ for file in ./settings/*; do
     fi
 done
 rm -f ./docker-compose.override.yml
+rm -rf ./instructions/*
 
 mkdir -p volumes volumes/metrics volumes/metrics/users volumes/search-es-snapshots volumes/search-es/data collections
 chmod 777 volumes/search-es-snapshots volumes/search-es/data
