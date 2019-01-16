@@ -32,7 +32,8 @@ def write_instructions(args):
         template = Template(script_template.read())
         script = template.render(collection_name=args.collection, collection_index=str.lower(args.collection))
 
-    collection_steps_script_name = os.path.join(instructions_dir_name, steps_script_name % '%s' % args.collection)
+    collection_steps_script_name = os.path.join(instructions_dir_name,
+                                                steps_script_name % '%s' % args.collection)
     with open(collection_steps_script_name, mode='w') as script_file:
         script_file.write(script)
         os.chmod(collection_steps_script_name, 0o750)
