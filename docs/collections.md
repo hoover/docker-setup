@@ -11,19 +11,18 @@ Then run the following command:
 ```
 
 The script will ask you to run additional commands if it ran successfully:
-```shell
-1. Run the following command to start added containers using docker-compose
-  $ docker-compose up -d
 
-2. Run this command to wait for PostgreSQL startup:
-  $ docker-compose run --rm snoop--<collection_name>/wait
+1. Start added containers using docker-compose
+` $ docker-compose up -d`
 
-3. Run the following command to initialize the collection database, index, and run dispatcher:
-  $ docker-compose run --rm snoop--<collection_name> ./manage.py initcollection 
+2. Wait for PostgreSQL startup:
+  `$ docker-compose run --rm snoop--<collection_name>/wait`
+
+3. Initialize the collection database, index, and run dispatcher:
+ `$ docker-compose run --rm snoop--<collection_name> ./manage.py initcollection` 
 
 4. Add the collection to search (--public is optional):
-  $ docker-compose run --rm search ./manage.py addcollection <collection_name> --index <collection_name> http://snoop--<collection_name> /collection/json --public
-```
+  `$ docker-compose run --rm search ./manage.py addcollection <collection_name> --index <collection_name> http://snoop--<collection_name> /collection/json --public`
 
 The `initcollection` docker command for snoop will create the database and an elasticsearch index, and it will trigger "walk" tasks to analyze the collection's contents. As the files get processed they will show up in the search results.
 
@@ -73,7 +72,7 @@ limitation could be lifted if the elasticsearch import code is modified to
 rename the index on import.
 
 
- **Exporting a collection**
+#### Exporting a collection 
 
 In order to work with a snoop collection within another hoover setup, it does not suffice to move collection files. The indexing work which is done when adding a collection needs to be exported from the corresponding snoop2 container as well.
 
@@ -98,7 +97,7 @@ Then you can safely copy the folders, which are needed for importing a collectio
 *The actual files, stored at `./collections/<collection_name>` are not necessarily needed.*
 
 
-**Importing a Collection**
+#### Importing a Collection
 
 Quick Recap: In order to import a snoop2 collection into hoover, you need:
 
@@ -123,22 +122,21 @@ The script will leave you with a shell script or which needs to be run in order 
 Run the following commands one after another. It will create the collection and import the index from file instead of running indexing again.
 
 
-```shell
-#start hoover again and spin up the containers for the new collection
-$ docker-compose up -d
+1. start hoover again and spin up the containers for the new collection
+`$ docker-compose up -d`
 
-#wait for the database
-$ docker-compose run --rm snoop--<collection_name> /wait
+2. wait for the database
+`$ docker-compose run --rm snoop--<collection_name> /wait`
 
-#create the data model in the snoop container
-$ docker-compose run --rm snoop--<collection_name> ./manage.py migrate
+3. create the data model in the snoop container
+`$ docker-compose run --rm snoop--<collection_name> ./manage.py migrate`
 
-#import the index
-$ docker-compose run -T  --rm snoop--<collection_name> ./manage.py importindex < <collection_name>-index.tgz
+4. import the index
+`$ docker-compose run -T  --rm snoop--<collection_name> ./manage.py importindex < <collection_name>-index.tgz`
 
-#add the collection to search
-$ docker-compose run --rm search ./manage.py addcollection <collection_name>--index <collection_name> http://snoop--<collection_name>/collection/json --public
-```
+5. add the collection to search
+`$ docker-compose run --rm search ./manage.py addcollection <collection_name>--index <collection_name> http://snoop--<collection_name>/collection/json --public`
+
 
 
 ## Deleting a collection
