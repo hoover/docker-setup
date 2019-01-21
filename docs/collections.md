@@ -13,16 +13,24 @@ Then run the following command:
 The script will ask you to run additional commands if it ran successfully:
 
 1. Start added containers using docker-compose
-` $ docker-compose up -d`
+    ```
+    $ docker-compose up -d
+    ```
 
 2. Wait for PostgreSQL startup:
-  `$ docker-compose run --rm snoop--<collection_name>/wait`
+    ```
+    $ docker-compose run --rm snoop--<collection_name>/wait
+    ```
 
 3. Initialize the collection database, index, and run dispatcher:
- `$ docker-compose run --rm snoop--<collection_name> ./manage.py initcollection` 
+    ```
+    $ docker-compose run --rm snoop--<collection_name> ./manage.py initcollection
+    ``` 
 
 4. Add the collection to search (--public is optional):
-  `$ docker-compose run --rm search ./manage.py addcollection <collection_name> --index <collection_name> http://snoop--<collection_name> /collection/json --public`
+    ```
+    $ docker-compose run --rm search ./manage.py addcollection <collection_name> --index <collection_name> http://snoop--<collection_name> /collection/json --public
+    ```
 
 The `initcollection` docker command for snoop will create the database and an elasticsearch index, and it will trigger "walk" tasks to analyze the collection's contents. As the files get processed they will show up in the search results.
 
@@ -123,19 +131,29 @@ Run the following commands one after another. It will create the collection and 
 
 
 1. start hoover again and spin up the containers for the new collection
-`$ docker-compose up -d`
+    ```
+    $ docker-compose up -d
+    ```
 
 2. wait for the database
-`$ docker-compose run --rm snoop--<collection_name> /wait`
+    ```
+    $ docker-compose run --rm snoop--<collection_name> /wait
+    ```
 
 3. create the data model in the snoop container
-`$ docker-compose run --rm snoop--<collection_name> ./manage.py migrate`
+    ```
+    $ docker-compose run --rm snoop--<collection_name> ./manage.py migrate
+    ```
 
 4. import the index
-`$ docker-compose run -T  --rm snoop--<collection_name> ./manage.py importindex < <collection_name>-index.tgz`
+    ```
+    $ docker-compose run -T  --rm snoop--<collection_name> ./manage.py importindex < <collection_name>-index.tgz
+    ```
 
 5. add the collection to search
-`$ docker-compose run --rm search ./manage.py addcollection <collection_name>--index <collection_name> http://snoop--<collection_name>/collection/json --public`
+    ```
+    $ docker-compose run --rm search ./manage.py addcollection <collection_name>--index <collection_name> http://snoop--<collection_name>/collection/json --public
+    ```
 
 
 
