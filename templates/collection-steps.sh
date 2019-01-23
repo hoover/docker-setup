@@ -5,8 +5,6 @@ echo "Starting with added containers using docker-compose..."
 docker-compose up -d
 echo "Waiting for PostgreSQL to start..."
 docker-compose run --rm snoop--{{ collection_name }} /wait
-echo "Updating search models..."
-docker-compose run --rm search ./manage.py migrate
 echo "Initializing the collection database, index, running dispatcher..."
 docker-compose run --rm snoop--{{ collection_name }} ./manage.py initcollection
 echo "Adding the collection to search..."

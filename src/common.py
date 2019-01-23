@@ -18,6 +18,7 @@ start_snoop_port = 45025
 default_flower_port = 5555
 start_flower_port = 15555
 collections_dir_name = 'collections'
+instructions_dir_name = 'instructions'
 settings_dir_name = 'settings'
 templates_dir_name = 'templates'
 volumes_dir_name = 'volumes'
