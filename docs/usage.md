@@ -29,7 +29,7 @@ Hoover:
   like):
 
 ```shell
-docker-compose run --rm snoop--testdata ./manage.py createocrsource myocr /opt/hoover/collections/testdata/ocr/myocr
+docker-compose run --rm snoop--testdata ./manage.py createocrsource myocr /opt/hoover/snoop/collection/ocr/myocr
 # wait for jobs to finish
 ```
 
