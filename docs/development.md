@@ -115,3 +115,21 @@ using:
 ```shell
 docker-compose run --rm snoop pytest testsuite/test_tika.py
 ```
+# Updating
+Since Hoover is still in an unversioned development stages, there are no patch notes with specific updates and update instructions. Here is a generic list of steps which bring everything up-to-date.
+
+1. `docker-compose down`
+2. pull the latest version of docker-setup by running `git pull` in your docker-setup directory.
+3. run  `docker-compose pull`  to get the latest version of all containers    
+    If you have followed default installation instructions, this will be `opt/hoover`  
+4. Update settings running `./updatesettings`
+5. Build the UI anew, by running:
+    ```shell
+    docker-compose run --rm ui npm run build
+    ```  
+5. run migration of search and the snoop-containers.  
+    ```shell
+    docker-compose run --rm search bash -c '/wait && ./manage.py migrate' 
+    docker-compose run --rm  snoop--<collection_name> ./manage.py migrate 
+    ```
+6. `docker-compose up -d`  

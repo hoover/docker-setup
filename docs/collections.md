@@ -12,23 +12,23 @@ Then run the following command:
 
 The script will ask you to run additional commands if it ran successfully:
 
-1. Start added containers using docker-compose
-    ```
+1. Start added containers using docker-compose  
+    ```shell
     $ docker-compose up -d
     ```
 
-2. Wait for PostgreSQL startup:
-    ```
+2. Wait for PostgreSQL startup:  
+    ```shell
     $ docker-compose run --rm snoop--<collection_name>/wait
     ```
 
-3. Initialize the collection database, index, and run dispatcher:
-    ```
+3. Initialize the collection database, index, and run dispatcher:  
+    ```shell
     $ docker-compose run --rm snoop--<collection_name> ./manage.py initcollection
     ``` 
 
-4. Add the collection to search (--public is optional):
-    ```
+4. Add the collection to search (--public is optional):  
+    ```shell
     $ docker-compose run --rm search ./manage.py addcollection <collection_name> --index <collection_name> http://snoop--<collection_name> /collection/json --public
     ```
 
@@ -70,7 +70,8 @@ The list of collections is optional. If no list was supplied then all collection
 will have kibana enabled/disabled.
 
 Kibana stats can also be enabled at collection cretion time:
-```./createcollection -c <collection> --stats
+```shell
+./createcollection -c <collection> --stats
 ```
 
 ## Exporting and importing collections
@@ -130,28 +131,28 @@ The script will leave you with a shell script or which needs to be run in order 
 Run the following commands one after another. It will create the collection and import the index from file instead of running indexing again.
 
 
-1. start hoover again and spin up the containers for the new collection
-    ```
+1. start hoover again and spin up the containers for the new collection  
+    ```shell
     $ docker-compose up -d
     ```
 
-2. wait for the database
-    ```
+2. wait for the database  
+    ```shell
     $ docker-compose run --rm snoop--<collection_name> /wait
     ```
 
-3. create the data model in the snoop container
-    ```
+3. create the data model in the snoop container  
+    ```shell
     $ docker-compose run --rm snoop--<collection_name> ./manage.py migrate
     ```
 
-4. import the index
-    ```
+4. import the index  
+    ```shell
     $ docker-compose run -T  --rm snoop--<collection_name> ./manage.py importindex < <collection_name>-index.tgz
     ```
 
-5. add the collection to search
-    ```
+5. add the collection to search  
+    ```shell
     $ docker-compose run --rm search ./manage.py addcollection <collection_name>--index <collection_name> http://snoop--<collection_name>/collection/json --public
     ```
 
