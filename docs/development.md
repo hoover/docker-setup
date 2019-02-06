@@ -127,9 +127,9 @@ Since Hoover is still in an unversioned development stages, there are no patch n
     ```shell
     docker-compose run --rm ui npm run build
     ```  
-5. run migration of search and a snoop-container.  
+5. run migration of search and the snoop-containers.  
     ```shell
-    docker-compose run --rm search bash -c '/wait && ./manage.py migrate  
+    docker-compose run --rm search bash -c '/wait && ./manage.py migrate' 
     docker-compose run --rm  snoop--<collection_name> ./manage.py migrate 
     ```
 6. `docker-compose up -d`  
