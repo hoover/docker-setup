@@ -20,6 +20,7 @@ services:
     volumes:
       - ./gnupg:/opt/hoover/gnupg
       - ./collections/FL1:/opt/hoover/snoop/collection
+      - ./ocr:/opt/hoover/snoop/ocr
       - ./settings/FL1/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/FL1:/opt/hoover/snoop/blobs
     env_file:
@@ -36,6 +37,7 @@ services:
     volumes:
       - ./gnupg:/opt/hoover/gnupg
       - ./collections/FL1:/opt/hoover/snoop/collection
+      - ./ocr:/opt/hoover/snoop/ocr
       - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
       - ./settings/FL1/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/FL1:/opt/hoover/snoop/blobs
