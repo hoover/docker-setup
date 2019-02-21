@@ -11,6 +11,7 @@
     volumes:{{ dev_volumes }}{{ profiling_volumes }}
       - ./gnupg:/opt/hoover/gnupg
       - ./collections/{{ collection_name }}:/opt/hoover/snoop/collection
+      - ./ocr:/opt/hoover/snoop/ocr
       - ./settings/{{ collection_name }}/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/{{ collection_name }}:/opt/hoover/snoop/blobs
     env_file:
@@ -26,6 +27,7 @@
     volumes:{{ dev_volumes }}{{ profiling_volumes }}
       - ./gnupg:/opt/hoover/gnupg
       - ./collections/{{ collection_name }}:/opt/hoover/snoop/collection
+      - ./ocr:/opt/hoover/snoop/ocr
       - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
       - ./settings/{{ collection_name }}/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/{{ collection_name }}:/opt/hoover/snoop/blobs

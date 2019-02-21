@@ -13,6 +13,7 @@
       - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py
       - ./gnupg:/opt/hoover/gnupg
       - ./collections/testdata:/opt/hoover/snoop/collection
+      - ./ocr:/opt/hoover/snoop/ocr
       - ./settings/testdata/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/testdata:/opt/hoover/snoop/blobs
     env_file:
@@ -31,6 +32,7 @@
       - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py
       - ./gnupg:/opt/hoover/gnupg
       - ./collections/testdata:/opt/hoover/snoop/collection
+      - ./ocr:/opt/hoover/snoop/ocr
       - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
       - ./settings/testdata/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/testdata:/opt/hoover/snoop/blobs
