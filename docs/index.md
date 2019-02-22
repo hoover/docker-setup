@@ -9,6 +9,6 @@ Hoover is a set of tools for searching in large collections of documents. It's e
 * [testdata](https://github.com/hoover/testdata) – various types of files to test the import and search capabilities
 Demo server
 
-You can try out Hoover on the demo server, [hoover.crji.org](hoover.crji.org).
+You can try out Hoover on the demo server, [hoover.crji.org](https://hoover.crji.org).
 
 All code is available on [GitHub](https://github.com/hoover) under the MIT license.

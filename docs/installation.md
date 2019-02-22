@@ -1,13 +1,15 @@
-# Linux Installation
+# Installation
+
+## Linux Installation
 
 These instructions have been tested on Debian Jessie.
 
-## Increase `vm.max_map_count`
+### Increase `vm.max_map_count`
 
 Increase `vm.max_map_count` to at least 262144, to make elasticsearch happy - see [the official documentation][] for details.
 [the official documentation]: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode
 
-## Install docker
+### Install docker
 
 ```shell
 apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common python3.6 python3-pip
@@ -21,7 +23,7 @@ curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compos
 chmod +x /usr/local/bin/docker-compose
 ```
 
-## Clone the repo and set up folders
+### Clone the repo and set up folders
 
 ```shell
 git clone https://github.com/hoover/docker-setup /opt/hoover
@@ -30,7 +32,7 @@ mkdir -p volumes volumes/metrics volumes/metrics/users volumes/search-es-snapsho
 chmod 777 volumes/search-es-snapshots volumes/search-es/data
 ```
 
-## Spin up
+### Spin up
 
 Spin up the docker containers, run migrations, create amdin user
 
@@ -42,14 +44,14 @@ docker-compose run --rm search ./manage.py collectstatic --noinput
 docker-compose up -d
 ```
 
-## Import the test dataset
+### Import the test dataset
 
 ```shell
 git clone https://github.com/hoover/testdata collections/testdata
 ./createcollection -c testdata
 ```
 
-## Adding custom settings for docker services
+### Adding custom settings for docker services
 To add custom settings to docker services create a file `docker-custom-services.yml` in the
 `templates` directory and add services with custom settings there in yml format. E.g.:
 ```yaml
@@ -63,9 +65,9 @@ After that run the update script:
 ./updatesettings
 ```
 
-# OS specific notes
+## OS specific notes
 
-## Installation on Windows 10 using Docker for Windows
+### Installation on Windows 10 using Docker for Windows
 
 All in all the above instructions are applicable, however there are a few things to consider 
 when using Windows10 for this setup.

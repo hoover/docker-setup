@@ -1,4 +1,4 @@
-# Working with collections
+# Collections
 
 
 ## Creating a collection
@@ -13,24 +13,24 @@ Then run the following command:
 The script will ask you to run additional commands if it ran successfully:
 
 1. Start added containers using docker-compose  
-    ```shell
-    $ docker-compose up -d
-    ```
+```shell
+$ docker-compose up -d
+```
 
 2. Wait for PostgreSQL startup:  
-    ```shell
-    $ docker-compose run --rm snoop--<collection_name>/wait
-    ```
+```shell
+$ docker-compose run --rm snoop--<collection_name>/wait
+```
 
 3. Initialize the collection database, index, and run dispatcher:  
-    ```shell
-    $ docker-compose run --rm snoop--<collection_name> ./manage.py initcollection
-    ``` 
+```shell
+$ docker-compose run --rm snoop--<collection_name> ./manage.py initcollection
+``` 
 
 4. Add the collection to search (--public is optional):  
-    ```shell
-    $ docker-compose run --rm search ./manage.py addcollection <collection_name> --index <collection_name> http://snoop--<collection_name> /collection/json --public
-    ```
+```shell
+$ docker-compose run --rm search ./manage.py addcollection <collection_name> --index <collection_name> http://snoop--<collection_name> /collection/json --public
+```
 
 The `initcollection` docker command for snoop will create the database and an elasticsearch index, and it will trigger "walk" tasks to analyze the collection's contents. As the files get processed they will show up in the search results.
 
