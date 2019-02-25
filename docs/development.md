@@ -1,4 +1,6 @@
-# Dev setup
+# Development
+
+## Dev setup
 Clone the code repositories:
 
 ```shell
@@ -69,7 +71,7 @@ To remove development from a list of collections use the following command:
 
 Leave the collection list empty to remove development for all collections.
 
-# Docker images
+## Docker images
 Docker-hub builds images based on the Hoover GitHub repos triggered by pushes
 to the master branches: [snoop2][], [search][], [ui][].
 
@@ -99,7 +101,7 @@ services:
     image: snoop2
 ```
 
-### Testing
+## Testing
 For Snoop and Search tests based on [pytest][] can be executed using this commands:
 
 [pytest]: https://docs.pytest.org/en/latest/
@@ -115,21 +117,44 @@ using:
 ```shell
 docker-compose run --rm snoop pytest testsuite/test_tika.py
 ```
-# Updating
+
+## Updating
 Since Hoover is still in an unversioned development stages, there are no patch notes with specific updates and update instructions. Here is a generic list of steps which bring everything up-to-date.
 
-1. `docker-compose down`
-2. pull the latest version of docker-setup by running `git pull` in your docker-setup directory.
-3. run  `docker-compose pull`  to get the latest version of all containers    
+- Shut down using `docker-compose down`
+- pull the latest version of docker-setup by running `git pull` in your docker-setup directory.
+- run  `docker-compose pull`  to get the latest version of all containers    
     If you have followed default installation instructions, this will be `opt/hoover`  
-4. Update settings running `./updatesettings`
-5. Build the UI anew, by running:
-    ```shell
-    docker-compose run --rm ui npm run build
-    ```  
-5. run migration of search and the snoop-containers.  
-    ```shell
-    docker-compose run --rm search bash -c '/wait && ./manage.py migrate' 
-    docker-compose run --rm  snoop--<collection_name> ./manage.py migrate 
-    ```
-6. `docker-compose up -d`  
+- Update settings running `./updatesettings`
+- Build the UI anew, by running `docker-compose run --rm ui npm run build`
+- run migration of search and the snoop-containers.
+```shell
+docker-compose run --rm search bash -c '/wait && ./manage.py migrate'
+docker-compose run --rm snoop--<collection_name> ./manage.py migrate
+```
+- Start up again with `docker-compose up -d`
+
+## Documentation
+
+To test this documentation locally, you can start using MkDocs on your machine.
+
+```shell
+mkdocs serve
+```
+
+Open [localhost:8000](http://127.0.0.1:8000) in your browser.
+
+### Install MkDocs
+
+See [mkdocs.org](https://www.mkdocs.org/) for more recent informations abot project documentation using Markdown.
+
+#### Brew
+
+```shell
+brew install mkdocs
+```
+
+#### Python (pip)
+```shell
+pip install mkdocs
+```

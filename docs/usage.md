@@ -1,4 +1,6 @@
-# Configuring two-factor authentication
+# Usage
+
+## Configuring two-factor authentication
 Since hoover-search has built-in support for TOTP two-factor authentication,
 you just need to enable the module by adding a line to `search.env`:
 
@@ -12,7 +14,7 @@ Then generate an invitation for your user (replace `admin` with your username):
 docker-compose run --rm search ./manage.py invite admin
 ```
 
-# Importing OCR'ed documents
+## Importing OCR'ed documents
 The OCR process (Optical Character Recognition – extracting machine-readable
 text from scanned documents) is done external to Hoover, using e.g. Tesseract.
 Try the Python pypdftoocr package. The resulting OCR'ed documents should be PDF
@@ -22,18 +24,21 @@ files whose filename is the MD5 checksum of the _original_ document, e.g.
 Hoover:
 
 * The _ocr folder_ should be in a path accessible to the hoover docker images,
-  e.g. in the shared "collections" folder,
-  `/opt/hoover/collections/testdata/ocr/myocr`.
+  e.g. in the shared "ocr" folder mapped to the local _ocr_ subfolder,
+  `/opt/hoover/collections/ocr/myocr`.
 
 * Register _ocr folder_ as a source for OCR named `myocr` (choose any name you
   like):
 
 ```shell
-docker-compose run --rm snoop--testdata ./manage.py createocrsource myocr /opt/hoover/snoop/collection/ocr/myocr
-# wait for jobs to finish
+# start workers in a separate, detachable session
+docker-compose run --rm snoop--testdata ./manage.py runworkers
+# add ocr source
+docker-compose run --rm snoop--testdata ./manage.py createocrsource myocr /opt/hoover/snoop/ocr/myocr
+# wait for jobs to finish in the workers session
 ```
 
-# Decrypting PGP emails
+## Decrypting PGP emails
 If you have access to PGP private keys, snoop can decrypt emails that were
 encrypted for those keys. Import the keys into a gnupg home folder placed next
 to the `docker-compose.yml` file. Snoop will automatically use this folder when
@@ -52,7 +57,7 @@ gpg --home gnupg --delete-key ABCDEF01
 gpg --home gnupg --import < path_to_key_nopassword
 ```
 
-# Profiling
+## Profiling
 It is possible to generate profiling data using the following commands:
 ```shell
 ./createcollection -c <collection_name> -p
