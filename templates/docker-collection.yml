@@ -40,6 +40,6 @@
       WAIT_HOSTS_TIMEOUT: 60
     depends_on:
       - snoop-rabbitmq
-      - snoop-tika{{ snoop_stats }}
+      - snoop-tika
       - search-es
       - snoop-pg--{{ collection_name }}

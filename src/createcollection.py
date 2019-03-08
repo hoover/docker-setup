@@ -9,7 +9,8 @@ from src.common import get_collections_data, validate_collections, cleanup, \
     collection_allowed_chars, validate_collection_name, validate_collection_data_dir, \
     create_settings_dir, write_collection_docker_file, volumes_dir_name, \
     write_python_settings_file, default_snoop_image, write_env_file, \
-    InvalidCollectionName, exit_msg, DOCKER_HOOVER_SNOOP_STATS
+    InvalidCollectionName, exit_msg, init_collection_settings,\
+    write_collections_settings
 
 steps_file_name = 'collection-%s-steps.txt'
 steps_script_name = 'init-%s.sh'
@@ -51,16 +52,11 @@ def get_args():
                         help='Add development settings to the docker file')
     parser.add_argument('-p', '--profiling', action='store_const', const=True, default=False,
                         help='Add profiling settings for the new collection.')
+    parser.add_argument('-t', '--tracing', action='store_const', const=True, default=False,
+                        help='Add tracing settings for the new collection.')
     parser.add_argument('-m', '--manual-indexing', action='store_const', const=True, default=False,
                         help='Do not add the option to start indexing automatically.')
-    parser.add_argument('--stats', action='store_const', const=True, default=False,
-                        help='Enable kibana stats.')
     args = parser.parse_args()
-
-    try:
-        validate_collection_name(args.collection)
-    except InvalidCollectionName as e:
-        exit_msg(str(e))
 
     return args
 
@@ -72,26 +68,37 @@ def create_pg_dir(collection):
 
 
 def create_collection(args):
-    data = get_collections_data(args.collection)
+    data = get_collections_data()
+    try:
+        validate_collection_name(args.collection, data['collections'])
+    except InvalidCollectionName as e:
+        exit_msg(str(e))
     if len(data['collections']):
         validate_collections(data['collections'])
     validate_collection_data_dir(args.collection)
 
     try:
+        init_collection_settings(data['collections'], args.collection, {
+            'autoindex': not args.manual_indexing,
+            'image': args.snoop_image,
+            'profiling': args.profiling,
+            'tracing': args.tracing,
+            'for_dev': args.dev,
+            'snoop_port': data['snoop_port'],
+            'flower_port': data['flower_port'] if not args.manual_indexing else None,
+            'pg_port': data['pg_port'] if args.dev else None
+        })
         create_pg_dir(args.collection)
         settings_dir = create_settings_dir(args.collection)
 
-        data['collections'][args.collection] = {'profiling': args.profiling, 'for_dev': args.dev}
         ordered_collections = OrderedDict(sorted(data['collections'].items(), key=lambda t: t[0]))
 
-        stats = args.stats or data['collections'].get('env', {}).get(DOCKER_HOOVER_SNOOP_STATS, False)
-
-        write_collection_docker_file(args.collection, args.snoop_image, settings_dir, data['snoop_port'],
-                                     args.profiling, args.dev, data['pg_port'], not args.manual_indexing,
-                                     stats, data['flower_port'])
-        write_env_file(settings_dir, {'DOCKER_HOOVER_SNOOP_STATS': args.stats})
-        write_python_settings_file(args.collection, settings_dir, args.profiling, args.dev)
-        write_global_docker_file(ordered_collections, args.dev or bool(data['dev_instances']), stats)
+        write_collection_docker_file(args.collection, settings_dir,
+                                     data['collections'][args.collection])
+        write_env_file(settings_dir)
+        write_python_settings_file(args.collection, settings_dir, data['collections'][args.collection])
+        write_global_docker_file(ordered_collections, args.dev or bool(data['dev_instances']))
+        write_collections_settings(data)
     except Exception as e:
         print('Error creating collection: %s' % e)
         cleanup(args.collection)
