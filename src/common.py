@@ -11,6 +11,7 @@ from shutil import rmtree
 
 from jinja2 import Template
 import yaml
+import json
 
 root_dir = Path(__file__).absolute().parent.parent
 collection_allowed_chars = 'a-z, A-Z, 0-9, _'
@@ -24,7 +25,6 @@ templates_dir_name = 'templates'
 volumes_dir_name = 'volumes'
 blobs_dir_name = 'snoop-blobs'
 docker_file_name = 'docker-compose.override.yml'
-stats_file_name = 'snoop-stats.yml'
 docker_dev_file_name = 'docker-compose.override-dev.yml'
 orig_docker_file_name = 'docker-compose.override-orig.yml'
 new_docker_file_name = 'docker-compose.override-new.yml'
@@ -33,6 +33,8 @@ custom_services_file_name = 'docker-custom-services.yml'
 snoop_settings_file_name = 'snoop-settings.py'
 snoop_settings_profiling_file_name = 'snoop-settings-profiling.py'
 snoop_settings_dev_file_name = 'snoop-settings-dev.py'
+snoop_settings_tracing_file_name = 'snoop-settings-tracing.py'
+collections_settings_file_name = 'collections.json'
 env_file_name = 'snoop.env'
 default_pg_port = 5432
 collection_exists_msg = 'Collection %s already exists!'
@@ -40,7 +42,24 @@ default_snoop_image = 'liquidinvestigations/hoover-snoop2'
 DOCKER_HOOVER_SNOOP_SECRET_KEY = 'DOCKER_HOOVER_SNOOP_SECRET_KEY'
 DOCKER_HOOVER_SNOOP_DEBUG = 'DOCKER_HOOVER_SNOOP_DEBUG'
 DOCKER_HOOVER_SNOOP_BASE_URL = 'DOCKER_HOOVER_SNOOP_BASE_URL'
-DOCKER_HOOVER_SNOOP_STATS = 'DOCKER_HOOVER_SNOOP_STATS'
+
+
+def gen_secret_key():
+    return b64encode(os.urandom(100)).decode('utf-8')
+
+
+default_collection_settings = {
+    'autoindex': True,
+    'profiling': False,
+    'tracing': False,
+    'for_dev': False,
+    'image': default_snoop_image,
+    'env': {
+        DOCKER_HOOVER_SNOOP_SECRET_KEY: gen_secret_key(),
+        DOCKER_HOOVER_SNOOP_BASE_URL: 'http://localhost',
+        DOCKER_HOOVER_SNOOP_DEBUG: False
+    }
+}
 
 
 def exit_msg(msg, *args):
@@ -56,7 +75,7 @@ class DuplicateCollection(RuntimeError):
     pass
 
 
-def validate_collection_name(collection_name):
+def validate_collection_name(collection_name, collections={}, new=True):
     '''Return true if the given name is a valid collection name
     :param collection_name:
     :return: bool
@@ -68,6 +87,13 @@ def validate_collection_name(collection_name):
                                     (collection_name, collection_allowed_chars))
     if not isalpha(collection_name[0]):
         raise InvalidCollectionName('The first character must be a letter.')
+
+    if new:
+        for collection in collections:
+            if collection.lower() == collection_name.lower():
+                raise InvalidCollectionName('Collection %s already exists' % collection_name)
+    elif collection_name not in collections:
+        raise InvalidCollectionName('Collection %s does not exist' % collection_name)
 
 
 def get_collection_data_dir(collection_name):
@@ -96,10 +122,10 @@ def has_volume(settings, volume_local):
     return False
 
 
-def get_collections_data(new_collection_name=None):
+def get_collections_data_old(new_collection_name=None):
     '''Return collections data in form of a tuple of ordered dictionary, next
     snoop available port, next postgresql available port (for development),
-    next port available for flower web admin, number of development instance
+    next port available for flower web admin, number of development instances
 
     :param new_collection_name: new collection name (if any)
     :return: dict
@@ -119,7 +145,6 @@ def get_collections_data(new_collection_name=None):
     pg_port = default_pg_port + 1
     flower_port = start_flower_port
     dev_instances = 0
-    stats_clients = 0
 
     with open(docker_file_name) as collections_file:
         collections_settings = yaml.load(collections_file)
@@ -153,9 +178,7 @@ def get_collections_data(new_collection_name=None):
                 flower_port += 1
 
     for collection_name in collections:
-        collections[collection_name]['env'] = read_env_file(get_settings_dir(collection_name))
-        if collections[collection_name]['env'].get(DOCKER_HOOVER_SNOOP_STATS, False):
-            stats_clients += 1
+            collections[collection_name]['env'] = read_env_file(get_settings_dir(collection_name))
 
     ordered_collections = OrderedDict(sorted(collections.items(), key=lambda t: t[0]))
 
@@ -164,9 +187,94 @@ def get_collections_data(new_collection_name=None):
         'snoop_port': last_snoop_port + 1,
         'pg_port': pg_port,
         'flower_port': flower_port,
-        'dev_instances': dev_instances,
-        'stats_clients': stats_clients
+        'dev_instances': dev_instances
     }
+
+
+def get_collections_data():
+    '''Return collections data in form of a tuple of ordered dictionary, next
+    snoop available port, next postgresql available port (for development),
+    next port available for flower web admin, number of development instance
+
+    :return: dict
+    '''
+    collections_file_name = os.path.join(settings_dir_name, collections_settings_file_name)
+
+    if not os.path.isfile(collections_file_name):
+        return {
+            'collections': {},
+            'snoop_port': start_snoop_port,
+            'pg_port': default_pg_port + 1,
+            'flower_port': start_flower_port,
+            'dev_instances': 0,
+            'stats_clients': 0
+        }
+
+    last_snoop_port = start_snoop_port - 1
+    pg_port = default_pg_port + 1
+    flower_port = start_flower_port
+    dev_instances = 0
+
+    with open(collections_file_name) as collections_file:
+        collections = json.load(collections_file)
+
+    for settings in collections.values():
+        if settings['for_dev']:
+            dev_instances += 1
+            pg_port += 1
+        if settings['snoop_port'] > last_snoop_port:
+            last_snoop_port = settings['snoop_port']
+        if settings.get('flower_port') and settings['flower_port'] > flower_port:
+            flower_port = settings['flower_port'] + 1
+
+    ordered_collections = OrderedDict(sorted(collections.items(), key=lambda t: t[0]))
+
+    return {
+        'collections': ordered_collections,
+        'snoop_port': last_snoop_port + 1,
+        'pg_port': pg_port,
+        'flower_port': flower_port,
+        'dev_instances': dev_instances
+    }
+
+
+def write_collections_settings(settings):
+    '''Write collections settings to the settings file
+    :param settings: dictionary containing collections
+    '''
+    coll_settings = settings if 'collections' not in settings else settings['collections']
+
+    with open(os.path.join(settings_dir_name, collections_settings_file_name), 'w') as settings_file:
+        settings_file.write(json.dumps(coll_settings, indent=4))
+
+
+def init_collection_settings(collections, new_collection_name, settings=default_collection_settings):
+    collections[new_collection_name] = settings
+
+
+def update_collections_settings(settings, attributes, collections_names=None):
+    if not collections_names:
+        return
+    collections = settings['collections']
+    for collection in collections_names:
+        if collection not in collections:
+            raise InvalidCollectionName('Collection %s does not exist' % collection)
+        for attribute, new_value in attributes.items():
+            setting = collections[collection]
+
+            path = attribute.split(sep='.')
+            while len(path) > 1:
+                attribute = path.pop(0)
+                if attribute not in setting:
+                    setting[attribute] = {}
+                setting = setting[attribute]
+            attribute = path.pop(0)
+            setting[attribute] = new_value
+
+            if attribute == 'autoindex':
+                collections[collection]['flower_port'] = settings['flower_port'] if new_value else None
+            if attribute == 'for_dev':
+                collections[collection]['pg_port'] = settings['pg_port'] if new_value else None
 
 
 def validate_collections(collections, exit_on_errors=True):
@@ -180,10 +288,6 @@ def validate_collections(collections, exit_on_errors=True):
         if not os.path.isdir(settings_dir):
             errors.append('Collection %s does not have a settings directory (%s)' %
                           (collection_name, settings_dir))
-        docker_file = os.path.join(settings_dir, docker_collection_file_name)
-        if not os.path.isfile(docker_file):
-            errors.append('Collection %s does not have a docker compose yml file (%s)' %
-                          (collection_name, docker_file))
         snoop_settings_file = os.path.join(settings_dir, snoop_settings_file_name)
         if not os.path.isfile(snoop_settings_file):
             errors.append('Collection %s has no snoop settings file (%s)' %
@@ -258,8 +362,8 @@ def read_env_file(settings_dir):
     :return: dict
     '''
     env_vars = [DOCKER_HOOVER_SNOOP_SECRET_KEY, DOCKER_HOOVER_SNOOP_DEBUG,
-                DOCKER_HOOVER_SNOOP_BASE_URL, DOCKER_HOOVER_SNOOP_STATS]
-    bool_vars = [DOCKER_HOOVER_SNOOP_DEBUG, DOCKER_HOOVER_SNOOP_STATS]
+                DOCKER_HOOVER_SNOOP_BASE_URL]
+    bool_vars = [DOCKER_HOOVER_SNOOP_DEBUG]
     env = {}
     with open(os.path.join(settings_dir, env_file_name)) as env_file:
         for line in env_file.readlines():
@@ -277,13 +381,13 @@ def write_env_file(settings_dir, env=None):
     :param settings_dir: the directory containing the settings files
     :param env: dictionary with environment variables
     '''
-    bool_params = {DOCKER_HOOVER_SNOOP_DEBUG: False, DOCKER_HOOVER_SNOOP_STATS: False}
+    bool_params = {DOCKER_HOOVER_SNOOP_DEBUG: False}
     if env is None:
         env = {}
     tpl_env = copy(env)
     for bool_param, value in bool_params.items():
         tpl_env[bool_param] = 'on' if tpl_env.get(bool_param, value) else 'off'
-    tpl_env.setdefault(DOCKER_HOOVER_SNOOP_SECRET_KEY, b64encode(os.urandom(100)).decode('utf-8'))
+    tpl_env.setdefault(DOCKER_HOOVER_SNOOP_SECRET_KEY, gen_secret_key())
     tpl_env.setdefault(DOCKER_HOOVER_SNOOP_BASE_URL, 'http://localhost')
 
     with open(os.path.join(templates_dir_name, env_file_name)) as env_template:
@@ -294,121 +398,92 @@ def write_env_file(settings_dir, env=None):
         env_file.write(env_settings)
 
 
-def write_env_files(collections, stats_collections=[], disable_stats=None):
+def write_env_files(collections):
     '''Generate environment files for the given collections.
 
     :param collections: list/dictionary of collections
-    :param stats_collections: list o collections for which to enable/disable stats
-    :param disable_stats: list o collections for which to disable stats
     '''
-    stats_clients = 0
-    for collection in collections:
+    for collection, settings in collections.items():
         settings_dir = create_settings_dir(collection, ignore_exists=True)
-        env = read_env_file(settings_dir)
-        if stats_collections and collection in stats_collections:
-            env[DOCKER_HOOVER_SNOOP_STATS] = not disable_stats
-        write_env_file(settings_dir, env)
-        if env.get(DOCKER_HOOVER_SNOOP_STATS, False):
-            stats_clients += 1
-    return stats_clients
+        write_env_file(settings_dir, settings.get('env'))
 
 
-def write_python_settings_file(collection, settings_dir, profiling=False, for_dev=False):
+def write_python_settings_file(collection, settings_dir, settings):
     '''Generate the corresponding collection python settings file.
 
     :param collection: the collection name
     :param settings_dir: the directory containing the settings files
-    :param profiling: if true, will add profiling settings
-    :param for_dev: if true, will add development settings
+    :param settings: dictionary containing collection settings
     '''
     with open(os.path.join(templates_dir_name, snoop_settings_file_name)) as settings_template:
         template = Template(settings_template.read())
         snoop_settings = template.render(collection_name=collection,
                                          collection_index=collection.lower(),
                                          collection_root=get_collection_data_dir(collection))
-    if profiling:
+    if settings.get('profiling'):
         with open(os.path.join(templates_dir_name, snoop_settings_profiling_file_name)) as \
                 profiling_template:
             snoop_settings += Template(profiling_template.read()).render()
-    if for_dev:
+    if settings.get('for_dev'):
         with open(os.path.join(templates_dir_name, snoop_settings_dev_file_name)) as \
                 dev_template:
             snoop_settings += Template(dev_template.read()).render()
+    if settings.get('tracing'):
+        with open(os.path.join(templates_dir_name, snoop_settings_tracing_file_name)) as \
+                tracing_template:
+            snoop_settings += Template(tracing_template.read()).render()
 
     with open(os.path.join(settings_dir, snoop_settings_file_name), mode='w') as settings_file:
         settings_file.write(snoop_settings)
 
 
-def write_python_settings_files(collections, profiling_collections=None, remove_profiling=False,
-                                dev_collections=None, remove_dev=False):
+def write_python_settings_files(collections):
     '''Generate the collections settings files.
 
-    :param collections: the collections name list
-    :param profiling_collections: the collections selected for profiling/no profiling
-    :param remove_profiling: if true, remove profiling from collections in profiling_collections
-    :param dev_collections: collections selected for dev/no dev
-    :param remove_dev: if true, remove dev from collections in dev_collections
+    :param collections: the dictionary containing the collections settings
     '''
     for collection, settings in collections.items():
         settings_dir = create_settings_dir(collection, ignore_exists=True)
-        if remove_profiling:
-            profiling = not collection_selected(collection, profiling_collections) and settings['profiling']
-        else:
-            profiling = collection_selected(collection, profiling_collections) or settings['profiling']
-        if remove_dev:
-            for_dev = not collection_selected(collection, dev_collections) and settings['for_dev']
-        else:
-            for_dev = collection_selected(collection, dev_collections) or settings['for_dev']
-
-        write_python_settings_file(collection, settings_dir,
-                                   profiling=profiling, for_dev=for_dev)
+        write_python_settings_file(collection, settings_dir, settings)
 
 
-def write_collection_docker_file(collection, snoop_image, settings_dir, snoop_port,
-                                 profiling=False, for_dev=False, pg_port=None,
-                                 autoindex=True, stats=False, flower_port=None):
+def write_collection_docker_file(collection, settings_dir, settings):
     '''Generate the corresponding collection docker file using the docker template.
 
     :param collection: the collection name
-    :param snoop_image: the snoop image name
     :param settings_dir: the directory containing the settings files
-    :param snoop_port: the snoop web admin port exposed by docker
-    :param profiling: if true, will add profiling settings
-    :param for_dev: if true, will add development settings
-    :param pg_port: the port on which the postgresql database is exposed if for_dev enabled
-    :param autoindex: if true add the command to automatically index the collection
-    :param stats: if true add dependency on snoop-stats-es container
-    :param flower_port: the port on which the flower admin UI is exposed
+    :param settings: dictionary containing the collection settings
     '''
-    dev_volumes = '\n      - ../snoop2:/opt/hoover/snoop:cached' if for_dev else ''
-    pg_port = pg_port if pg_port else default_pg_port + 1
-    dev_ports = '    ports:\n      - "%d:%d"\n' % (pg_port, default_pg_port) if for_dev else ''
-    snoop_port = snoop_port if snoop_port else start_snoop_port
+    dev_volumes = '\n      - ../snoop2:/opt/hoover/snoop:cached' if settings.get('for_dev') else ''
+    pg_port = settings.get('pg_port', default_pg_port + 1)
+    if settings.get('for_dev'):
+        dev_ports = '    ports:\n      - "%d:%d"\n' % (pg_port, default_pg_port)
+    else:
+        dev_ports = ''
+    snoop_port = settings.get('snoop_port', start_snoop_port)
     profiling_volumes = ''
-    if profiling:
+    if settings.get('profiling'):
         profiling_volumes = '\n      - ./%s:/opt/hoover/snoop/profiles' % \
                             os.path.join('profiles', collection) + \
                             '\n      - ./settings/urls.py:/opt/hoover/snoop/snoop/urls.py'
-    if autoindex:
+    if settings.get('autoindex'):
         index_command = '    command: ./manage.py runworkers\n'
     else:
         index_command = '    command: echo "disabled"\n'
-    snoop_stats = '\n      - snoop-stats-es' if stats else ''
-    if flower_port:
-        flower_port_text = '    ports:\n      - "%d:%d"\n' % (flower_port, default_flower_port)
+    if settings.get('flower_port'):
+        flower_port_text = '    ports:\n      - "%d:%d"\n' % (settings['flower_port'], default_flower_port)
     else:
         flower_port_text = ''
 
     with open(os.path.join(templates_dir_name, docker_collection_file_name)) as docker_template:
         template = Template(docker_template.read())
         collection_settings = template.render(collection_name=collection,
-                                              snoop_image=snoop_image,
+                                              snoop_image=settings['image'],
                                               snoop_port=snoop_port,
                                               profiling_volumes=profiling_volumes,
                                               dev_volumes=dev_volumes,
                                               dev_ports=dev_ports,
                                               index_command=index_command,
-                                              snoop_stats=snoop_stats,
                                               flower_port=flower_port_text)
 
     with open(os.path.join(settings_dir, docker_collection_file_name), mode='w') \
@@ -435,22 +510,10 @@ def read_collection_docker_file(collection, settings_dir):
         return snoop_image, snoop_port, flower_port
 
 
-def write_collections_docker_files(collections, snoop_image=None, profiling_collections=None,
-                                   remove_profiling=False, dev_collections=None, remove_dev=False,
-                                   index_collections=None, remove_indexing=False,
-                                   stats_collections=None, disable_stats=False):
+def write_collections_docker_files(collections):
     '''Generate the collections docker files. Returns the number of dev instances.
 
-    :param collections: the collections name list
-    :param snoop_image: the snoop image name
-    :param profiling_collections: the collections selected for profiling/no profiling
-    :param remove_profiling: if true, remove profiling from collections in profiling_collections
-    :param dev_collections: collections selected for dev/no dev
-    :param remove_dev: if true, remove dev from collections in dev_collections
-    :param index_collections: collections selected for automatic/manual indexing
-    :param remove_indexing: if true, remove autoindexing from collections in index_collections
-    :param stats_collections: collections selected for stats
-    :param disable_stats: if true, disable stats from collections in stats_collections
+    :param collections: the dictionary containing the collections settings
     :return: int
     '''
     pg_port = default_pg_port + 1
@@ -464,52 +527,31 @@ def write_collections_docker_files(collections, snoop_image=None, profiling_coll
         validate_collection_data_dir(collection)
 
         settings_dir = create_settings_dir(collection, ignore_exists=True)
-        orig_snoop_image, snoop_port, flower_port = read_collection_docker_file(collection, settings_dir)
-        updated_snoop_image = snoop_image if snoop_image else orig_snoop_image
 
-        if remove_profiling:
-            profiling = not collection_selected(collection, profiling_collections) and settings['profiling']
-        else:
-            profiling = collection_selected(collection, profiling_collections) or settings['profiling']
-        if remove_dev:
-            for_dev = not collection_selected(collection, dev_collections) and settings['for_dev']
-        else:
-            for_dev = collection_selected(collection, dev_collections) or settings['for_dev']
-        dev_instances += int(for_dev)
-        if remove_indexing:
-            indexing = not collection_selected(collection, index_collections) and settings['autoindex']
-        else:
-            indexing = collection_selected(collection, index_collections) or settings['autoindex']
-        if disable_stats:
-            stats = not collection_selected(collection, stats_collections) and \
-                settings['env'].get(DOCKER_HOOVER_SNOOP_STATS, False)
-        else:
-            stats = collection_selected(collection, stats_collections) or \
-                settings['env'].get(DOCKER_HOOVER_SNOOP_STATS, False)
+        dev_instances += int(settings.get('for_dev', False))
 
-        if indexing:
-            if flower_port and flower_port not in flower_ports:
-                next_flower_port = flower_port
+        if settings.get('autoindex'):
+            if settings.get('flower_port') and settings['flower_port'] not in flower_ports:
+                next_flower_port = settings['flower_port']
             else:
-                flower_port = next_flower_port
+                settings['flower_port'] = next_flower_port
                 next_flower_port += 1
-            flower_ports.add(flower_port)
+            flower_ports.add(settings['flower_port'])
         else:
-            flower_port = None
+            settings['flower_port'] = None
 
-        if snoop_port and snoop_port not in snoop_ports:
-            next_snoop_port = snoop_port
+        if settings.get('snoop_port') and settings['snoop_port'] not in snoop_ports:
+            next_snoop_port = settings['snoop_port']
         else:
             next_snoop_port += 1
         snoop_ports.add(next_snoop_port)
 
-        write_collection_docker_file(collection, updated_snoop_image, settings_dir, next_snoop_port,
-                                     profiling, for_dev, pg_port, indexing, stats, flower_port)
+        write_collection_docker_file(collection, settings_dir, settings)
         pg_port += 1
     return dev_instances
 
 
-def write_global_docker_file(collections, for_dev=False, stats=False):
+def write_global_docker_file(collections, for_dev=False):
     '''Generate the override docker file from collection docker files.
 
     :param collections: the collections name list
@@ -523,10 +565,6 @@ def write_global_docker_file(collections, for_dev=False, stats=False):
     with open(str(root_dir / new_docker_file_name), 'w') as new_docker_file:
         new_docker_file.write('version: "3.3"\n\nservices:\n')
 
-        if stats:
-            with open(os.path.join(templates_dir_name, stats_file_name)) as stats_file:
-                new_docker_file.write(stats_file.read())
-
         custom_services_file_path = os.path.join(templates_dir_name, custom_services_file_name)
         if os.path.isfile(custom_services_file_path):
             with open(custom_services_file_path) as custom_services_file:
@@ -538,11 +576,11 @@ def write_global_docker_file(collections, for_dev=False, stats=False):
             new_docker_file.write(docker_file.read())
 
         snoop_collections = '\n      - '.join(['snoop--' + c for c in collections])
-        new_docker_file.write('    depends_on:\n      - %s' % snoop_collections)
+        new_docker_file.write('    depends_on:\n      - %s\n' % snoop_collections)
         snoop_aliases = ''.join(['\n      - "snoop--%s:snoop--%s"' % (c, c.lower()) if c != c.lower()
                                  else '' for c in collections])
         if snoop_aliases:
-            new_docker_file.write('\n    links:%s\n' % snoop_aliases)
+            new_docker_file.write('    links:%s\n' % snoop_aliases)
 
         for collection_name in collections:
             new_docker_file.write('\n')

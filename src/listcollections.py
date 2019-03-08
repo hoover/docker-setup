@@ -2,7 +2,7 @@ import argparse
 from copy import deepcopy
 import json
 
-from src.common import get_collections_data, DOCKER_HOOVER_SNOOP_STATS
+from src.common import get_collections_data
 
 
 def get_args():
@@ -16,23 +16,22 @@ def print_collections(collections):
     index = 1
     for collection, settings in collections.items():
         print('%d. %s' % (index, collection))
-        print('  - profiling: %s' % settings['profiling'])
-        print('  - development: %s' % settings['for_dev'])
-        print('  - auto-indexing: %s' % settings['autoindex'])
-        print('  - image: %s' % settings['image'])
-        print('  - stats: %s' % settings['stats'])
-        print('  - snoop admin URL: %s' % settings['snoop_url'])
-        if settings['autoindex'] and 'flower_url' in settings:
+        print('  - auto-indexing: %s' % settings.get('autoindex', False))
+        if settings.get('autoindex') and 'flower_url' in settings:
             print('  - flower URL: %s' % settings['flower_url'])
+        print('  - image: %s' % settings['image'])
+        print('  - snoop admin URL: %s' % settings['snoop_url'])
+        print('  - profiling: %s' % settings.get('profiling', False))
+        print('  - tracing: %s' % settings.get('tracing', False))
+        print('  - development: %s' % settings.get('for_dev', False))
         index += 1
 
 
 def prepare_data(collections):
     data = deepcopy(collections)
     for settings in data.values():
-        settings['stats'] = 'enabled' if settings['env'].get(DOCKER_HOOVER_SNOOP_STATS, False) \
-            else 'disabled'
-        del settings['env']
+        if 'env' in settings:
+            del settings['env']
         settings['snoop_url'] = 'http://localhost:%d' % settings['snoop_port']
         if 'flower_port' in settings:
             settings['flower_url'] = 'http://localhost:%d' % settings['flower_port']

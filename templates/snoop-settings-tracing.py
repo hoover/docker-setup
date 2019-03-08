@@ -1,0 +1,11 @@
+
+TRACING_ENABLED = False
+
+TRACING_SERVICE = 'snoop'
+
+TRACING_HOST = 'zipkin'
+
+TRACING_PORT = 9411
+
+TRACING_API = '/api/v2/spans'
+
