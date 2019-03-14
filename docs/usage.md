@@ -75,3 +75,41 @@ To remove profiling from a list of collections run the following command:
 ```
 
 Leave the collection list empty to remove profiling for all collections.
+
+
+# Tracing
+Snoop can generate trace data using [OpenCensus](https://opencensus.io). Take
+the following steps in order to generate trace data:
+1. Clone the [Docker Zipkin](https://github.com/openzipkin/docker-zipkin)
+repository and modify the following files:
+- `docker-compose.yml`: add the following text before the `services` block:
+```networks:
+  default:
+    external:
+      name: docker-setup_default
+```
+- `prometheus/prometheus.yml`: add the following text in the `scrape_configs`
+block:
+```- job_name: '<snoop_instance>'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['<snoop_instance>:8000']
+```
+where `<snoop_instance>` is the name of the snoop instance being traced.
+
+2. Run `./updatesettings` command with the option `-t` and optionally specifying
+the instances for which to enable tracing. E.g.: `./updatesettings -t test`
+
+3. Run `docker-compose up -d` in order to restart modified snoop instances.
+
+4. In the Docker Zipkin directory run the following command:
+`docker-compose up -d`. This will start the zipkin and prometheus services on
+the hoover network (default name is `docker-setup_default`).
+
+5. View the trace spans at this URL: `http://localhost:9411/zipkin/`. See
+OpenCensus [documentation](https://opencensus.io/tracing/span/) on how to read
+span data.
+
+6. View metrics at URL: `http://localhost:9090`. See OpenCensus
+[documentation](https://opencensus.io/quickstart/python/metrics/) (`Viewing
+your metrics`) on how to interpret metrics.

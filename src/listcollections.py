@@ -33,7 +33,7 @@ def prepare_data(collections):
         if 'env' in settings:
             del settings['env']
         settings['snoop_url'] = 'http://localhost:%d' % settings['snoop_port']
-        if 'flower_port' in settings:
+        if settings.get('autoindex') and settings.get('flower_port'):
             settings['flower_url'] = 'http://localhost:%d' % settings['flower_port']
     return data
 
