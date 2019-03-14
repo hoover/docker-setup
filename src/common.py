@@ -42,6 +42,14 @@ default_snoop_image = 'liquidinvestigations/hoover-snoop2'
 DOCKER_HOOVER_SNOOP_SECRET_KEY = 'DOCKER_HOOVER_SNOOP_SECRET_KEY'
 DOCKER_HOOVER_SNOOP_DEBUG = 'DOCKER_HOOVER_SNOOP_DEBUG'
 DOCKER_HOOVER_SNOOP_BASE_URL = 'DOCKER_HOOVER_SNOOP_BASE_URL'
+default_collections_data = {
+    'collections': {},
+    'snoop_port': start_snoop_port,
+    'pg_port': default_pg_port + 1,
+    'flower_port': start_flower_port,
+    'dev_instances': 0,
+    'stats_clients': 0
+}
 
 
 def gen_secret_key():
@@ -122,23 +130,15 @@ def has_volume(settings, volume_local):
     return False
 
 
-def get_collections_data_old(new_collection_name=None):
+def get_collections_data_old():
     '''Return collections data in form of a tuple of ordered dictionary, next
     snoop available port, next postgresql available port (for development),
     next port available for flower web admin, number of development instances
 
-    :param new_collection_name: new collection name (if any)
     :return: dict
     '''
     if not os.path.isfile(docker_file_name):
-        return {
-            'collections': {},
-            'snoop_port': start_snoop_port,
-            'pg_port': default_pg_port + 1,
-            'flower_port': start_flower_port,
-            'dev_instances': 0,
-            'stats_clients': 0
-        }
+        return default_collections_data
 
     collections = {}
     last_snoop_port = start_snoop_port - 1
@@ -159,9 +159,6 @@ def get_collections_data_old(new_collection_name=None):
                 if collections[collection_name]['for_dev']:
                     dev_instances += 1
                     pg_port += 1
-
-                if new_collection_name and collection_name.lower() == new_collection_name.lower():
-                    exit_msg(collection_exists_msg, new_collection_name)
 
                 port = int(settings['ports'][0].split(sep=':')[0])
                 collections[collection_name]['snoop_port'] = port
@@ -201,14 +198,7 @@ def get_collections_data():
     collections_file_name = os.path.join(settings_dir_name, collections_settings_file_name)
 
     if not os.path.isfile(collections_file_name):
-        return {
-            'collections': {},
-            'snoop_port': start_snoop_port,
-            'pg_port': default_pg_port + 1,
-            'flower_port': start_flower_port,
-            'dev_instances': 0,
-            'stats_clients': 0
-        }
+        return get_collections_data_old()
 
     last_snoop_port = start_snoop_port - 1
     pg_port = default_pg_port + 1
@@ -517,7 +507,7 @@ def write_collections_docker_files(collections):
     :return: int
     '''
     pg_port = default_pg_port + 1
-    next_snoop_port = start_snoop_port
+    last_snoop_port = start_snoop_port
     next_flower_port = start_flower_port
     dev_instances = 0
     flower_ports = set()
@@ -541,10 +531,11 @@ def write_collections_docker_files(collections):
             settings['flower_port'] = None
 
         if settings.get('snoop_port') and settings['snoop_port'] not in snoop_ports:
-            next_snoop_port = settings['snoop_port']
+            last_snoop_port = settings['snoop_port']
         else:
-            next_snoop_port += 1
-        snoop_ports.add(next_snoop_port)
+            last_snoop_port += 1
+            settings['snoop_port'] = last_snoop_port
+        snoop_ports.add(last_snoop_port)
 
         write_collection_docker_file(collection, settings_dir, settings)
         pg_port += 1

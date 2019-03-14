@@ -2,9 +2,7 @@ import argparse
 
 from src.common import validate_collections, get_collections_data, write_global_docker_file, \
     write_collections_docker_files, write_python_settings_files, write_env_files,\
-    update_collections_settings, write_collections_settings,\
-    get_collections_data_old, collections_settings_file_name
-import os
+    update_collections_settings, write_collections_settings
 
 
 def get_args():
@@ -62,10 +60,7 @@ def read_collections_arg(add_list, remove_list, all_collections):
 
 
 def update_settings(args):
-    if not os.path.isfile(collections_settings_file_name):
-        data = get_collections_data_old()
-    else:
-        data = get_collections_data()
+    data = get_collections_data()
 
     collections = data['collections']
     if len(collections):
