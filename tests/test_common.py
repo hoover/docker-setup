@@ -126,8 +126,8 @@ def test_write_collection_docker_file(data_dir_path, tmpdir):
                                   'flower_port': 15555})
     with open(os.path.join(tmpdir_path, docker_collection_file_name)) as collection_file, \
             open(str(data_dir_path / 'docker-collection-clean.yml')) as test_file:
-        collection_settings = yaml.load(collection_file)
-        test_settings = yaml.load(test_file)
+        collection_settings = yaml.load(collection_file, Loader=yaml.FullLoader)
+        test_settings = yaml.load(test_file, Loader=yaml.FullLoader)
         assert collection_settings == test_settings
 
     write_collection_docker_file(collection, tmpdir_path,
@@ -135,8 +135,8 @@ def test_write_collection_docker_file(data_dir_path, tmpdir):
                                   'profiling': True})
     with open(os.path.join(tmpdir_path, docker_collection_file_name)) as collection_file, \
             open(str(data_dir_path / 'docker-collection-profiling.yml')) as test_file:
-        collection_settings = yaml.load(collection_file)
-        test_settings = yaml.load(test_file)
+        collection_settings = yaml.load(collection_file, Loader=yaml.FullLoader)
+        test_settings = yaml.load(test_file, Loader=yaml.FullLoader)
         assert collection_settings == test_settings
 
     write_collection_docker_file(collection, tmpdir_path,
@@ -144,8 +144,8 @@ def test_write_collection_docker_file(data_dir_path, tmpdir):
                                   'for_dev': True, 'pg_port': 5433})
     with open(os.path.join(tmpdir_path, docker_collection_file_name)) as collection_file, \
             open(str(data_dir_path / 'docker-collection-dev.yml')) as test_file:
-        collection_settings = yaml.load(collection_file)
-        test_settings = yaml.load(test_file)
+        collection_settings = yaml.load(collection_file, Loader=yaml.FullLoader)
+        test_settings = yaml.load(test_file, Loader=yaml.FullLoader)
         assert collection_settings == test_settings
 
 
@@ -164,8 +164,8 @@ def test_write_global_docker_file(monkeypatch, data_dir_path, templates_dir_path
     write_global_docker_file(collections)
     with open(str(tmpdir / c.docker_file_name)) as docker_file, \
             open(str(data_dir_path / 'docker-compose.override-uppercase.yml')) as test_file:
-        global_settings = yaml.load(docker_file)
-        test_settings = yaml.load(test_file)
+        global_settings = yaml.load(docker_file, Loader=yaml.FullLoader)
+        test_settings = yaml.load(test_file, Loader=yaml.FullLoader)
         assert global_settings == test_settings
 
     collection = 'fl2'
@@ -178,8 +178,8 @@ def test_write_global_docker_file(monkeypatch, data_dir_path, templates_dir_path
     write_global_docker_file(collections)
     with open(str(tmpdir / c.docker_file_name)) as docker_file, \
             open(str(data_dir_path / 'docker-compose.override-lowercase.yml')) as test_file:
-        global_settings = yaml.load(docker_file)
-        test_settings = yaml.load(test_file)
+        global_settings = yaml.load(docker_file, Loader=yaml.FullLoader)
+        test_settings = yaml.load(test_file, Loader=yaml.FullLoader)
         assert global_settings == test_settings
 
     collection = 'FL3'
@@ -192,8 +192,8 @@ def test_write_global_docker_file(monkeypatch, data_dir_path, templates_dir_path
     write_global_docker_file(collections, for_dev=True)
     with open(str(tmpdir / c.docker_file_name)) as docker_file, \
             open(str(data_dir_path / 'docker-compose.override-dev.yml')) as test_file:
-        global_settings = yaml.load(docker_file)
-        test_settings = yaml.load(test_file)
+        global_settings = yaml.load(docker_file, Loader=yaml.FullLoader)
+        test_settings = yaml.load(test_file, Loader=yaml.FullLoader)
         assert global_settings == test_settings
 
 

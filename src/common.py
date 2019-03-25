@@ -147,7 +147,7 @@ def get_collections_data_old():
     dev_instances = 0
 
     with open(docker_file_name) as collections_file:
-        collections_settings = yaml.load(collections_file)
+        collections_settings = yaml.load(collections_file, Loader=yaml.FullLoader)
         for service, settings in collections_settings['services'].items():
             if service.startswith('snoop--'):
                 collection_name = service[len('snoop--'):]
@@ -490,7 +490,7 @@ def read_collection_docker_file(collection, settings_dir):
     :return: (str, int, int)
     '''
     with open(os.path.join(settings_dir, docker_collection_file_name)) as collection_file:
-        settings = yaml.load(collection_file)
+        settings = yaml.load(collection_file, Loader=yaml.FullLoader)
         snoop_image = settings['snoop-worker--' + collection]['image']
         snoop_port = int(settings['snoop--' + collection]['ports'][0].split(sep=':')[0])
         if 'ports' in settings['snoop-worker--' + collection]:
