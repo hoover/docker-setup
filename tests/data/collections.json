@@ -1,0 +1,32 @@
+{
+    "testdata1": {
+        "autoindex": true,
+        "image": "snoop2",
+        "profiling": false,
+        "tracing": false,
+        "for_dev": false,
+        "snoop_port": 45025,
+        "pg_port": null,
+        "flower_port": 15555,
+        "env": {
+            "DOCKER_HOOVER_SNOOP_DEBUG": false,
+            "DOCKER_HOOVER_SNOOP_SECRET_KEY": "secret-key===",
+            "DOCKER_HOOVER_SNOOP_BASE_URL": "http://localhost"
+        }
+    },
+    "testdata2": {
+        "autoindex": true,
+        "image": "snoop2",
+        "profiling": false,
+        "tracing": false,
+        "for_dev": false,
+        "snoop_port": 45026,
+        "pg_port": null,
+        "flower_port": 15556,
+        "env": {
+            "DOCKER_HOOVER_SNOOP_DEBUG": false,
+            "DOCKER_HOOVER_SNOOP_SECRET_KEY": "secret-key===",
+            "DOCKER_HOOVER_SNOOP_BASE_URL": "http://localhost"
+        }
+    }
+}

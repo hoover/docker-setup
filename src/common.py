@@ -175,7 +175,7 @@ def get_collections_data_old():
                 flower_port += 1
 
     for collection_name in collections:
-            collections[collection_name]['env'] = read_env_file(get_settings_dir(collection_name))
+        collections[collection_name]['env'] = read_env_file(get_settings_dir(collection_name))
 
     ordered_collections = OrderedDict(sorted(collections.items(), key=lambda t: t[0]))
 
@@ -214,7 +214,7 @@ def get_collections_data():
             pg_port += 1
         if settings['snoop_port'] > last_snoop_port:
             last_snoop_port = settings['snoop_port']
-        if settings.get('flower_port') and settings['flower_port'] > flower_port:
+        if settings.get('flower_port') and settings['flower_port'] >= flower_port:
             flower_port = settings['flower_port'] + 1
 
     ordered_collections = OrderedDict(sorted(collections.items(), key=lambda t: t[0]))
@@ -238,8 +238,19 @@ def write_collections_settings(settings):
         settings_file.write(json.dumps(coll_settings, indent=4))
 
 
-def init_collection_settings(collections, new_collection_name, settings=default_collection_settings):
-    collections[new_collection_name] = settings
+def init_collection_settings(collections, args, data):
+    collections[args.collection] = {
+        'autoindex': not args.manual_indexing,
+        'image': args.snoop_image,
+        'profiling': args.profiling,
+        'tracing': args.tracing,
+        'for_dev': args.dev,
+        'snoop_port': data['snoop_port'],
+        'flower_port': data['flower_port'] if not args.manual_indexing else None,
+        'pg_port': data['pg_port'] if args.dev else None,
+        'env': default_collection_settings['env']
+    }
+    collections[args.collection]['env'][DOCKER_HOOVER_SNOOP_DEBUG] = args.dev
 
 
 def update_collections_settings(settings, attributes, collections_names=None):
@@ -265,6 +276,7 @@ def update_collections_settings(settings, attributes, collections_names=None):
                 collections[collection]['flower_port'] = settings['flower_port'] if new_value else None
             if attribute == 'for_dev':
                 collections[collection]['pg_port'] = settings['pg_port'] if new_value else None
+                collections[collection]['env'][DOCKER_HOOVER_SNOOP_DEBUG] = new_value
 
 
 def validate_collections(collections, exit_on_errors=True):
@@ -365,20 +377,22 @@ def read_env_file(settings_dir):
     return env
 
 
-def write_env_file(settings_dir, env=None):
+def write_env_file(settings_dir, settings):
     '''Generate the environment file in the given settings directory.
 
     :param settings_dir: the directory containing the settings files
     :param env: dictionary with environment variables
     '''
     bool_params = {DOCKER_HOOVER_SNOOP_DEBUG: False}
-    if env is None:
-        env = {}
-    tpl_env = copy(env)
+    if 'env' not in settings:
+        settings['env'] = {}
+    tpl_env = copy(settings['env'])
     for bool_param, value in bool_params.items():
-        tpl_env[bool_param] = 'on' if tpl_env.get(bool_param, value) else 'off'
-    tpl_env.setdefault(DOCKER_HOOVER_SNOOP_SECRET_KEY, gen_secret_key())
-    tpl_env.setdefault(DOCKER_HOOVER_SNOOP_BASE_URL, 'http://localhost')
+        if bool_param not in settings['env']:
+            settings['env'][bool_param] = value
+        tpl_env[bool_param] = 'on' if settings['env'][bool_param] else 'off'
+    settings['env'].setdefault(DOCKER_HOOVER_SNOOP_SECRET_KEY, gen_secret_key())
+    settings['env'].setdefault(DOCKER_HOOVER_SNOOP_BASE_URL, 'http://localhost')
 
     with open(os.path.join(templates_dir_name, env_file_name)) as env_template:
         template = Template(env_template.read())
@@ -395,7 +409,7 @@ def write_env_files(collections):
     '''
     for collection, settings in collections.items():
         settings_dir = create_settings_dir(collection, ignore_exists=True)
-        write_env_file(settings_dir, settings.get('env'))
+        write_env_file(settings_dir, settings)
 
 
 def write_python_settings_file(collection, settings_dir, settings):
@@ -521,10 +535,9 @@ def write_collections_docker_files(collections):
         dev_instances += int(settings.get('for_dev', False))
 
         if settings.get('autoindex'):
-            if settings.get('flower_port') and settings['flower_port'] not in flower_ports:
-                next_flower_port = settings['flower_port']
-            else:
+            if not settings.get('flower_port') or settings['flower_port'] in flower_ports:
                 settings['flower_port'] = next_flower_port
+            if next_flower_port <= settings['flower_port']:
                 next_flower_port += 1
             flower_ports.add(settings['flower_port'])
         else:
