@@ -92,6 +92,29 @@ def test_get_collections_data_old(monkeypatch, data_dir_path):
     assert data['dev_instances'] == 2
 
 
+def test_get_collections_data(monkeypatch, data_dir_path):
+    env = {
+        c.DOCKER_HOOVER_SNOOP_SECRET_KEY: 'secret-key===',
+        c.DOCKER_HOOVER_SNOOP_DEBUG: False,
+        c.DOCKER_HOOVER_SNOOP_BASE_URL: 'http://localhost'
+    }
+
+    monkeypatch.setattr(c, 'settings_dir_name', str(data_dir_path))
+    monkeypatch.setattr(c, 'get_settings_dir', lambda _: c.settings_dir_name)
+    data = get_collections_data()
+    assert data['collections'] == OrderedDict((
+        ('testdata1', {'profiling': False, 'for_dev': False, 'autoindex': True, 'image': 'snoop2',
+                       'env': env, 'snoop_port': 45025, 'flower_port': 15555, 'tracing': False,
+                       'pg_port': None}),
+        ('testdata2', {'profiling': False, 'for_dev': False, 'autoindex': True, 'image': 'snoop2',
+                       'env': env, 'snoop_port': 45026, 'flower_port': 15556, 'tracing': False,
+                       'pg_port': None})))
+    assert data['snoop_port'] == 45027
+    assert data['flower_port'] == 15557
+    assert data['pg_port'] == 5433
+    assert data['dev_instances'] == 0
+
+
 def test_write_python_settings_file(tmpdir):
     collection = 'testdata'
 
@@ -213,7 +236,7 @@ def test_read_write_env_file(monkeypatch, data_dir_path, tmpdir):
         m.setattr(c, 'env_file_name', 'snoop-1.env')
         env1 = read_env_file(str(data_dir_path))
         assert env1 == env1_test
-    write_env_file(str(tmpdir), env1)
+    write_env_file(str(tmpdir), {'env': env1})
     with open(str(data_dir_path / 'snoop-1-test.env')) as env1_test_file, \
             open(str(tmpdir / c.env_file_name)) as env_file:
         env1_test_content = env1_test_file.read()
@@ -224,7 +247,7 @@ def test_read_write_env_file(monkeypatch, data_dir_path, tmpdir):
         m.setattr(c, 'env_file_name', 'snoop-2.env')
         env2 = read_env_file(str(data_dir_path))
         assert env2 == env2_test
-    write_env_file(str(tmpdir), env2)
+    write_env_file(str(tmpdir), {'env': env2})
     with open(str(data_dir_path / 'snoop-2.env')) as env2_test_file, \
             open(str(tmpdir / c.env_file_name)) as env_file:
         env2_test_content = env2_test_file.read()

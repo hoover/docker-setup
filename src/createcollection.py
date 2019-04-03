@@ -78,16 +78,7 @@ def create_collection(args):
     validate_collection_data_dir(args.collection)
 
     try:
-        init_collection_settings(data['collections'], args.collection, {
-            'autoindex': not args.manual_indexing,
-            'image': args.snoop_image,
-            'profiling': args.profiling,
-            'tracing': args.tracing,
-            'for_dev': args.dev,
-            'snoop_port': data['snoop_port'],
-            'flower_port': data['flower_port'] if not args.manual_indexing else None,
-            'pg_port': data['pg_port'] if args.dev else None
-        })
+        init_collection_settings(data['collections'], args, data)
         create_pg_dir(args.collection)
         settings_dir = create_settings_dir(args.collection)
 
@@ -95,7 +86,7 @@ def create_collection(args):
 
         write_collection_docker_file(args.collection, settings_dir,
                                      data['collections'][args.collection])
-        write_env_file(settings_dir)
+        write_env_file(settings_dir, data['collections'][args.collection])
         write_python_settings_file(args.collection, settings_dir, data['collections'][args.collection])
         write_global_docker_file(ordered_collections, args.dev or bool(data['dev_instances']))
         write_collections_settings(data)

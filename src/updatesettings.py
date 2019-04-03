@@ -83,6 +83,10 @@ def update_settings(args):
     for_dev, remove_dev = read_collections_arg(args.dev, args.remove_dev, collections_names)
     update_collections_settings(data, {'for_dev': not remove_dev}, for_dev)
 
+    if args.snoop_image:
+        for settings in data['collections'].values():
+            settings['image'] = args.snoop_image
+
     write_env_files(collections)
 
     write_python_settings_files(collections)
