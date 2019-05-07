@@ -32,6 +32,13 @@ mkdir -p volumes volumes/metrics volumes/metrics/users volumes/search-es-snapsho
 chmod 777 volumes/search-es-snapshots volumes/search-es/data
 ```
 
+### Set up the host on which the search service will be available
+
+Edit the file `settings/search.env` and change the value of `DOCKER_HOOVER_BASE_URL` to the public URL.
+E.g.: `http://mysite.com`
+
+The search UI will be available at `http://mysite.com:45024`
+
 ### Spin up
 
 Spin up the docker containers, run migrations, create amdin user
@@ -50,6 +57,20 @@ docker-compose up -d
 git clone https://github.com/hoover/testdata collections/testdata
 ./createcollection -c testdata
 ```
+
+### Accessing the indexing services
+
+The command `listcollections` lists the existing collections and their settings.
+Each collection has a snoop admin URL, where the indexing service admin UI can be accessed.
+First, a superuser needs to be created for the collection, by running the following command:
+```shell
+docker-compose run --rm snoop--[collection_name] ./manage.py createsuperuser
+```
+
+The host from the admin URL can be changed in `settings/[collection_name]/snoop.env`, by changing
+the value of the `DOCKER_HOOVER_SNOOP_BASE_URL` variable.
+
+Indexing statistics can be viewed by accessing the flower URL for each collection.
 
 ### Adding custom settings for docker services
 To add custom settings to docker services create a file `docker-custom-services.yml` in the
