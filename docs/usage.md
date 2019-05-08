@@ -7,6 +7,11 @@ you just need to enable the module by adding a line to `search.env`:
 ```env
 DOCKER_HOOVER_TWOFACTOR_ENABLED=on
 ```
+Run the migration to update the db with two-factor tables
+
+```shell
+docker-compose run --rm search ./manage.py migrate
+```
 
 Then generate an invitation for your user (replace `admin` with your username):
 
