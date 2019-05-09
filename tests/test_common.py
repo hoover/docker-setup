@@ -260,7 +260,7 @@ def test_write_collections_docker_files(monkeypatch, data_dir_path, tmpdir):
     monkeypatch.setattr(c, 'validate_collection_data_dir', lambda _: True)
     collections_settings = {
         'testdata1': {'image': 'snoop2', 'snoop_port': 45025, 'flower_port': None},
-        'testdata2': {'image': 'liquidinvestigations/hoover-snoop2', 'snoop_port': 45026,
+        'testdata2': {'image': 'liquidinvestigations/hoover-snoop2:0.1', 'snoop_port': 45026,
                       'flower_port': 15555},
     }
 
