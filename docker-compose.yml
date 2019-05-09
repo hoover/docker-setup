@@ -25,12 +25,12 @@ services:
       path.repo: /opt/hoover/es-snapshots
 
   ui:
-    image: liquidinvestigations/hoover-ui
+    image: liquidinvestigations/hoover-ui:0.1
     volumes:
       - ./ui/build:/opt/hoover/ui/build
 
   search:
-    image: liquidinvestigations/hoover-search
+    image: liquidinvestigations/hoover-search:0.1
     volumes:
       - ./ui/build:/opt/hoover/ui/build
       - ./volumes/metrics:/opt/hoover/metrics

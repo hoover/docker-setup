@@ -7,7 +7,7 @@
       - ./volumes/snoop-pg--testdata2/data:/var/lib/postgresql/data
 
   snoop-worker--testdata2:
-    image: liquidinvestigations/hoover-snoop2
+    image: liquidinvestigations/hoover-snoop2:0.1
     volumes:
       - ./gnupg:/opt/hoover/gnupg
       - ./collections/testdata2:/opt/hoover/snoop/collection
@@ -25,7 +25,7 @@
     command: ./manage.py runworkers
 
   snoop--testdata2:
-    image: liquidinvestigations/hoover-snoop2
+    image: liquidinvestigations/hoover-snoop2:0.1
     volumes:
       - ./gnupg:/opt/hoover/gnupg
       - ./collections/testdata2:/opt/hoover/snoop/collection
