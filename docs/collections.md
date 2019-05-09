@@ -55,11 +55,19 @@ look like this:
   - profiling: False
   - development: False
   - auto-indexing: True
-  - image: liquidinvestigations/hoover-snoop2
+  - image: liquidinvestigations/hoover-snoop2:0.1
   - stats: disabled
   - snoop admin URL: http://localhost:45025
   - flower URL: http://localhost:15555
 ```
+
+## Updating collections images
+The snoop images used for indexing are labeled. When an image was updated on the
+docker registry it can be pulled locally by running the following commands:
+```shell
+./updatesettings -s
+docker-compose up -d
+``` 
 
 ## Disable/enable kibana stats
 By default kibana stats are disabled when creating a new collection. They can be
