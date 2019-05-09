@@ -2,12 +2,13 @@ import argparse
 
 from src.common import validate_collections, get_collections_data, write_global_docker_file, \
     write_collections_docker_files, write_python_settings_files, write_env_files,\
-    update_collections_settings, write_collections_settings
+    update_collections_settings, write_collections_settings, default_snoop_image
 
 
 def get_args():
     parser = argparse.ArgumentParser(description='Update the collections settings with given options.')
-    parser.add_argument('-s', '--snoop-image', help='Snoop docker image')
+    parser.add_argument('-s', '--snoop-image', help='Snoop docker image', nargs='?',
+                        const=default_snoop_image)
 
     for_dev = parser.add_mutually_exclusive_group()
     for_dev.add_argument('-d', '--dev', action='append', nargs='*',
