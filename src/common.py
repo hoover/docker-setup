@@ -14,7 +14,7 @@ import yaml
 import json
 
 root_dir = Path(__file__).absolute().parent.parent
-collection_allowed_chars = 'a-z, A-Z, 0-9, _'
+collection_allowed_chars = 'a-z, A-Z, 0-9'
 start_snoop_port = 45025
 default_flower_port = 5555
 start_flower_port = 15555
@@ -38,7 +38,7 @@ collections_settings_file_name = 'collections.json'
 env_file_name = 'snoop.env'
 default_pg_port = 5432
 collection_exists_msg = 'Collection %s already exists!'
-default_snoop_image = 'liquidinvestigations/hoover-snoop2:0.1'
+default_snoop_image = 'liquidinvestigations/hoover-snoop2:0.1.1'
 DOCKER_HOOVER_SNOOP_SECRET_KEY = 'DOCKER_HOOVER_SNOOP_SECRET_KEY'
 DOCKER_HOOVER_SNOOP_DEBUG = 'DOCKER_HOOVER_SNOOP_DEBUG'
 DOCKER_HOOVER_SNOOP_BASE_URL = 'DOCKER_HOOVER_SNOOP_BASE_URL'
@@ -50,6 +50,10 @@ default_collections_data = {
     'dev_instances': 0,
     'stats_clients': 0
 }
+collections_path = Path(__file__).resolve().parent.parent / collections_dir_name
+volumes_path = Path(__file__).resolve().parent.parent / volumes_dir_name
+blobs_path = Path(__file__).resolve().parent.parent / blobs_dir_name
+ocr_path = Path(__file__).resolve().parent.parent / 'ocr'
 
 
 def gen_secret_key():
@@ -90,7 +94,7 @@ def validate_collection_name(collection_name, collections={}, new=True):
     '''
     if not collection_name:
         raise InvalidCollectionName('Collection name must not be empty.')
-    if re.search('\W+', collection_name):
+    if not re.search('^[a-zA-Z0-9]+$', collection_name):
         raise InvalidCollectionName('Invalid collection name %s. Allowed characters: "%s"' %
                                     (collection_name, collection_allowed_chars))
     if not isalpha(collection_name[0]):
@@ -212,6 +216,8 @@ def get_collections_data():
         if settings['for_dev']:
             dev_instances += 1
             pg_port += 1
+            if settings['pg_port'] >= pg_port:
+                pg_port = settings['pg_port'] + 1
         if settings['snoop_port'] > last_snoop_port:
             last_snoop_port = settings['snoop_port']
         if settings.get('flower_port') and settings['flower_port'] >= flower_port:

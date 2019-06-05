@@ -14,6 +14,7 @@
       - ./ocr:/opt/hoover/snoop/ocr
       - ./settings/{{ collection_name }}/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/{{ collection_name }}:/opt/hoover/snoop/blobs
+      - ./volumes/exports/{{ collection_name }}:/opt/hoover/snoop/exports
     env_file:
       - ./settings/{{ collection_name }}/snoop.env
     depends_on:
@@ -31,6 +32,7 @@
       - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
       - ./settings/{{ collection_name }}/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/{{ collection_name }}:/opt/hoover/snoop/blobs
+      - ./volumes/exports/{{ collection_name }}:/opt/hoover/snoop/exports
     ports:
       - "{{ snoop_port }}:80"
     env_file:
