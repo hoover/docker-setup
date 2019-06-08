@@ -40,10 +40,10 @@ def test_validate_collection_name():
         validate_collection_name(None)
     with pytest.raises(InvalidCollectionName):
         validate_collection_name('')
-    for char in "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?-":
+    for char in "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?-_":
         with pytest.raises(InvalidCollectionName):
             validate_collection_name('aaa%s' % char)
-    validate_collection_name('Aa0_')
+    validate_collection_name('Aa0')
 
 
 def test_get_collections_data_old(monkeypatch, data_dir_path):

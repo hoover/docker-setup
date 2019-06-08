@@ -21,6 +21,7 @@ services:
       - ./ocr:/opt/hoover/snoop/ocr
       - ./settings/fl2/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/fl2:/opt/hoover/snoop/blobs
+      - ./volumes/exports/fl2:/opt/hoover/snoop/exports
     env_file:
       - ./settings/fl2/snoop.env
     depends_on:
@@ -39,6 +40,7 @@ services:
       - ./volumes/search-es-snapshots:/opt/hoover/es-snapshots
       - ./settings/fl2/snoop-settings.py:/opt/hoover/snoop/snoop/localsettings.py
       - ./snoop-blobs/fl2:/opt/hoover/snoop/blobs
+      - ./volumes/exports/fl2:/opt/hoover/snoop/exports
     ports:
       - "45025:80"
     env_file:
