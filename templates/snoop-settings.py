@@ -25,15 +25,14 @@ DATABASES = {
 
 CELERY_BROKER_URL = 'amqp://snoop-rabbitmq'
 
-SNOOP_TIKA_URL = 'http://snoop-tika:9998'
+TIKA_URL = 'http://snoop-tika:9998'
 
-SNOOP_COLLECTIONS_ELASTICSEARCH_URL = 'http://search-es:9200'
+COLLECTIONS_ELASTICSEARCH_URL = 'http://search-es:9200'
 
-SNOOP_GNUPG_HOME = '/opt/hoover/gnupg'
+GNUPG_HOME = '/opt/hoover/gnupg'
 
 TASK_PREFIX = '{{ collection_name }}'
 
-SNOOP_COLLECTIONS_ELASTICSEARCH_INDEX = '{{ collection_index }}'
+COLLECTIONS_ELASTICSEARCH_INDEX = '{{ collection_index }}'
 
-SNOOP_COLLECTION_ROOT = 'collection'
-
+COLLECTION_ROOT = 'collection'
